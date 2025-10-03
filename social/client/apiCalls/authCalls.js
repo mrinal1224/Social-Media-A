@@ -116,6 +116,36 @@ export const commentOnPost = async (postId, text) => {
   }
 }
 
+// follow and unfollow calls
+
+export const followUser = async (userId) => {
+  try {
+    const response = await api.post(`/api/follow/${userId}`, {}, { withCredentials: true })
+    return response.data
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to follow user";
+  }
+}
+
+export const unfollowUser = async (userId) => {
+  try {
+    const response = await api.post(`/api/follow/unfollow/${userId}`, {}, { withCredentials: true })
+    return response.data
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to unfollow user";
+  }
+}
+
+export const getFollowStatus = async (userId) => {
+  try {
+    const response = await api.get(`/api/follow/status/${userId}`, { withCredentials: true })
+    return response.data
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to get follow status";
+  }
+}
+
+
 
 
 
