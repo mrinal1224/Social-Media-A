@@ -123,9 +123,39 @@ export const like = async (req, res) => {
 
 
 export const comment  = async(req , res)=>{
-   // postid
-   // userid
-   // userName
-   // text
-   // createdAt
+  try {
+    // postid from params
+    // userid - from isAuth middleware -> req.userId
+    // text -> from body
+    const postId = req.params.postId;
+    const { text } = req.body;
+
+    if (!text || typeof text !== "string" || text.trim() === "") {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
+
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    const commentObj = {
+      user: req.userId,
+      text: text.trim(),
+      createdAt: Date.now(),
+    };
+
+    post.comments.push(commentObj);
+    await post.save();
+
+    // populate the comment user fields to return useful info
+    await post.populate("comments.user", "userName profileImage");
+
+    const addedComment = post.comments[post.comments.length - 1];
+
+    return res.status(201).json(addedComment);
+  } catch (error) {
+    return res.status(500).json({ message: `Cannot add comment ${error}` });
+  }
 }
