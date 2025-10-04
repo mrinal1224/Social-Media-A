@@ -114,6 +114,31 @@ export const like = async (req, res) => {
 
 export const comment  = async(req , res)=>{
    // postid
+   try{
+    const {postId,text} = req.body
+    const userId = req.userId
+    const post = await Post.findById(postId)
+    if(!post){
+        return res.status(404).json({message:"No Post Found"})
+    }
+    const user = await User.findById(userId)
+    if(!user){
+        return res.status(404).json({message:"No User Found"})
+    }
+    const comment = {
+        userId,
+        userName:user.userName,
+        text,
+        createdAt:new Date()
+    }
+    post.comments.push(comment)
+    await post.save()
+    const populatedPost = await Post.findById(postId).populate("author","userName profileImage")
+    
+    return res.status(200).json(post)
+   }catch(error){
+       return res.status(500).json({message: `Cannot Comment ${error}`})
+   }
    // userid
    // userName
    // text
