@@ -67,23 +67,22 @@ export const getAllPosts = async (req, res) => {
   try {
     // Get current user with following list
     const currentUser = await User.findById(req.userId);
-    
+
     // Create array of user IDs to fetch posts from (followed users + self)
     const userIds = [req.userId, ...currentUser.following];
-    
+
     // Get posts only from these users
     const posts = await Post.find({
-      author: { $in: userIds }
+      author: { $in: userIds },
     })
       .populate("author", "name userName profileImage")
       .sort({ createdAt: -1 }); // Latest posts first
-    
+
     return res.status(200).json(posts);
   } catch (error) {
     return res.status(500).json({ message: `Cannot get posts error ${error}` });
   }
 };
-
 
 export const like = async (req, res) => {
   // post id
@@ -122,10 +121,57 @@ export const like = async (req, res) => {
 };
 
 
-export const comment  = async(req , res)=>{
-   // postid
-   // userid
-   // userName
-   // text
-   // createdAt
-}
+  export const comment = async (req, res) => {
+    // postid
+    // userid
+    // userName
+    // text
+    // createdAt
+    try {
+    const postId = req.params.postId;
+
+    const { commentText } = req.body;
+
+    if (!commentText || commentText.trim() === "") {
+      return res
+        .status(400)
+        .json({ message: "Empty comment. Comment text is required" });
+    }
+
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ message: "No post Found" });
+    }
+
+    const newComment = {
+      user: req.userId,
+
+      text,
+
+      createdAt: Date.now(),
+    };
+
+    post.comments.push(newComment);
+
+    await post.save();
+
+    await post.populate({
+      path: "comments.user",
+
+      select: "userName profileImage",
+    });
+
+    await post.populate("author", "userName profileImage");
+
+    return res.status(201).json(post);
+  } catch (error) {
+    console.error(error);
+
+    return res
+
+      .status(500)
+
+      .json({ message: `Cannot add comment: ${error.message}` });
+  }
+};
