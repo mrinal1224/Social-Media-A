@@ -11,12 +11,15 @@ import Profile from "./pages/Profile.jsx";
 import EditProfile from "./pages/EditProfile.jsx";
 import Upload from "./pages/Upload.jsx";
 import useAllPosts from "../hooks/useAllPosts.jsx";
+import getSuggestedUsers from "../hooks/getSuggestedUsers.jsx";
+import CreateStory from "./components/CreateStory.jsx";
 
 
 
 function App() {
   useCurrentUser()
   useAllPosts()
+  getSuggestedUsers()
   const {userData ,profileData} = useSelector(state=>state.user)
 
   return (
@@ -29,6 +32,8 @@ function App() {
         <Route path="/profile/:userName" element={<Profile />} />
         <Route path="/editprofile/" element={userData?<EditProfile/>:<Navigate to='/signin'/>} />
         <Route path="/upload" element={<Upload/>} />
+        <Route path='/create-story' element={<CreateStory/>}/>
+        
       </Routes>
     </>
   );

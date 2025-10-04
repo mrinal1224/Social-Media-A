@@ -4,6 +4,7 @@ import logo from "../assets/socialLogo.png";
 import Nav from './Nav'
 import { useSelector } from "react-redux";
 import Post from "./Post";
+import StoriesBar from "./StoriesBar";
 
 function FeedDesign() {
   const {postData} = useSelector(state=>state.post)
@@ -31,21 +32,7 @@ function FeedDesign() {
 
         {/* Stories */}
         <div className="flex w-full overflow-x-auto gap-4 px-6 py-4 border-b border-neutral-200">
-          <div className="flex flex-col items-center gap-1 shrink-0">
-            <div className="w-[60px] h-[60px] rounded-full bg-neutral-300"></div>
-            <p className="text-xs text-neutral-600">Your Story</p>
-          </div>
-          {Array(6)
-            .fill("")
-            .map((_, i) => (
-              <div
-                key={i}
-                className="flex flex-col items-center gap-1 shrink-0"
-              >
-                <div className="w-[60px] h-[60px] rounded-full bg-neutral-300"></div>
-                <p className="text-xs text-neutral-600">User {i + 1}</p>
-              </div>
-            ))}
+          <StoriesBar/>
         </div>
 
         <Nav/>

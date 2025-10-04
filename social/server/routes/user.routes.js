@@ -2,7 +2,7 @@ import express from "express";
 import {
   editProfile,
   getCurrentUser,
-  getProfile,
+  getProfile,getSuggestedUsers
 } from "../controllers/user.controllers.js";
 import isAuth from "../middlewares/isAuth.js";
 import { upload } from "../middlewares/multer.js";
@@ -17,6 +17,12 @@ userRouter.post(
   isAuth,
   upload.single("profileImage"),
   editProfile
+);
+
+userRouter.get(
+  "/suggested",
+  isAuth,
+  getSuggestedUsers
 );
 
 export default userRouter;
