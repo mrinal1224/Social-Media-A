@@ -70,9 +70,10 @@ export const getAllPosts = async (req, res) => {
       .populate("comments.user", "userName");
     return res.status(200).json(posts);
   } catch (error) {
-    return res.status(404).json({ message: "No Posts Found" });
+    return res.status(500).json({ message: `Cannot get posts error ${error}` });
   }
 };
+
 
 export const like = async (req, res) => {
   // post id

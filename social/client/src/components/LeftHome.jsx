@@ -2,11 +2,14 @@
 import React from "react";
 import logo from "../assets/socialLogo.png";
 import {useSelector} from 'react-redux'
+import SuggestedUsers from "./SuggestedUsers";
 
 
 function LeftHome() {
 
  const {userData} = useSelector(state => state.user)
+ const {suggestedUsers} = useSelector(state => state.user)
+ console.log(suggestedUsers)
   return (
     <div
       className="
@@ -47,27 +50,10 @@ function LeftHome() {
         <h1 className="text-sm font-semibold text-neutral-800">
           Suggested Users
         </h1>
-        {Array(3)
-          .fill("")
-          .map((_, i) => (
-            <div
-              key={i}
-              className="flex items-center justify-between w-full"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-[50px] h-[50px] rounded-full bg-neutral-200"></div>
-                <div>
-                  <p className="font-medium text-sm text-neutral-800">
-                    user_{i + 1}
-                  </p>
-                  <p className="text-xs text-neutral-500">Suggested</p>
-                </div>
-              </div>
-              <button className="text-[#0095F6] text-xs font-semibold hover:underline">
-                Follow
-              </button>
-            </div>
-          ))}
+        {suggestedUsers?.slice(0 ,5).map((user)=>{
+          return <SuggestedUsers user={user}/>
+        })}
+        
       </div>
     </div>
   );
