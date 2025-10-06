@@ -7,7 +7,7 @@ import Post from "./Post";
 import StoriesBar from "./StoriesBar";
 
 function FeedDesign() {
-  const {postData} = useSelector(state=>state.post)
+  const { postData } = useSelector(state => state.post)
   return (
     <div
       className="
@@ -17,7 +17,7 @@ function FeedDesign() {
       "
     >
       <div className="w-[95%] lg:max-w-[85%] min-h-[90vh] rounded-2xl flex flex-col overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.25)] bg-white">
-        
+
         {/* Header */}
         <div className="w-full h-[80px] flex items-center justify-between px-6 border-b border-neutral-200">
           <img src={logo} alt="Logo" className="w-[100px]" />
@@ -32,16 +32,16 @@ function FeedDesign() {
 
         {/* Stories */}
         <div className="flex w-full overflow-x-auto gap-4 px-6 py-4 border-b border-neutral-200">
-          <StoriesBar/>
+          <StoriesBar />
         </div>
 
-        <Nav/>
+        <Nav />
 
         {/* Feed Posts */}
         <div className="flex-1 w-full px-6 py-6 overflow-y-auto bg-neutral-50">
-           {postData?.map((post)=>(
-             <Post post={post}/>
-           ))}
+          {postData?.map((post) => (
+            <Post key={post._id} post={post} />
+          ))}
         </div>
       </div>
     </div>

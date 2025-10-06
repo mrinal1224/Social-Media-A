@@ -1,15 +1,15 @@
 // src/components/LeftHomeDesign.jsx
 import React from "react";
 import logo from "../assets/socialLogo.png";
-import {useSelector} from 'react-redux'
+import { useSelector } from 'react-redux'
 import SuggestedUsers from "./SuggestedUsers";
 
 
 function LeftHome() {
 
- const {userData} = useSelector(state => state.user)
- const {suggestedUsers} = useSelector(state => state.user)
- console.log(suggestedUsers)
+  const { userData } = useSelector(state => state.user)
+  const { suggestedUsers } = useSelector(state => state.user)
+  console.log(suggestedUsers)
   return (
     <div
       className="
@@ -33,7 +33,7 @@ function LeftHome() {
       <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200">
         <div className="flex items-center gap-3">
           <div className="w-[60px] h-[60px] rounded-full overflow-hidden border border-neutral-300">
-            <img src={userData?.profileImage}  alt="profile" className="w-full h-full object-cover" />
+            <img src={userData?.profileImage || null} alt="profile" className="w-full h-full object-cover" />
           </div>
           <div>
             <div className="font-semibold text-sm text-neutral-900">{userData.userName}</div>
@@ -50,10 +50,10 @@ function LeftHome() {
         <h1 className="text-sm font-semibold text-neutral-800">
           Suggested Users
         </h1>
-        {suggestedUsers?.slice(0 ,5).map((user)=>{
-          return <SuggestedUsers user={user}/>
+        {suggestedUsers?.slice(0, 5).map((user) => {
+          return <SuggestedUsers key={user._id || user.userName} user={user} />
         })}
-        
+
       </div>
     </div>
   );

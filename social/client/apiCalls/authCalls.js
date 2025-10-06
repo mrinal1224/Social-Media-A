@@ -43,7 +43,7 @@ export const signInUser = async ({ userName, password }) => {
 
 export const getCurrentUser = async () => {
   try {
-    const response = await api.get("/api/user/current", {withCredentials:true});
+    const response = await api.get("/api/user/current", { withCredentials: true });
     return response.data; // return just the data
   } catch (error) {
     // standardize error handling
@@ -51,11 +51,10 @@ export const getCurrentUser = async () => {
   }
 };
 
-
- // get User Profile Data
-export const getProfile= async (userName) => {
+// get User Profile Data
+export const getProfile = async (userName) => {
   try {
-    const response = await api.get(`/api/user/getprofile/${userName}`, {withCredentials:true});
+    const response = await api.get(`/api/user/getprofile/${userName}`, { withCredentials: true });
     return response.data; // return just the data
   } catch (error) {
     // standardize error handling
@@ -64,9 +63,9 @@ export const getProfile= async (userName) => {
 };
 
 
-export const editProfile= async (formData) => {
+export const editProfile = async (formData) => {
   try {
-    const response = await api.post(`/api/user/editprofile/`,formData,  {withCredentials:true});
+    const response = await api.post(`/api/user/editprofile/`, formData, { withCredentials: true });
     return response.data; // return just the data
   } catch (error) {
     // standardize error handling
@@ -75,10 +74,9 @@ export const editProfile= async (formData) => {
 };
 
 
-export const createPost = async(formData)=>{
-   try {
-    const response = await api.post(`/api/post/uploadPost/`,formData,
-         {withCredentials:true}  );
+export const createPost = async (formData) => {
+  try {
+    const response = await api.post(`/api/post/uploadPost/`, formData, { withCredentials: true });
     return response.data; // return just the data
   } catch (error) {
     // standardize error handling
@@ -86,16 +84,15 @@ export const createPost = async(formData)=>{
   }
 }
 
-
-export const getAllPosts = async ()=>{
-    try {
-    const response = await api.get(`/api/post/getAllPosts`,  {
+export const getAllPosts = async () => {
+  try {
+    const response = await api.get(`/api/post/getAllPosts`, {
       withCredentials: true,
     });
     return response.data;
   } catch (error) {
     throw error.response?.data?.message || "Failed to fetch Posts";
-  } 
+  }
 }
 
 export const likePost = async (postId) => {
@@ -106,6 +103,19 @@ export const likePost = async (postId) => {
     throw error.response?.data?.message || "Failed to like post";
   }
 }
+
+export const commentOnPost = async (postId, text) => {
+  const trimmed = (text ?? "").trim();
+  if (!postId) throw "Post ID is required";
+  if (!trimmed) throw "Comment text is required";
+
+  try {
+    const response = await api.post(`/api/post/comment/${postId}`, { text: trimmed }, { withCredentials: true });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to comment on post";
+  }
+};
 
 // follow and unfollow calls
 
@@ -139,7 +149,7 @@ export const getFollowStatus = async (userId) => {
 // 
 export const getSuggestions = async () => {
   try {
-    const response = await api.get(`/api/user/suggested`)
+    const response = await api.get(`/api/user/suggested`, { withCredentials: true })
     return response.data
   } catch (error) {
     throw error.response?.data?.message || "Failed to fetch user profile data";
@@ -206,15 +216,4 @@ export const viewStory = async (storyId) => {
     throw error.response?.data?.message || "Failed to view story";
   }
 };
-
 // Delete the Story
-
-
-
-
-
-
-
-
-
-
