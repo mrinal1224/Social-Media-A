@@ -3,32 +3,31 @@ import { useSelector, useDispatch } from "react-redux";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { BiComment } from "react-icons/bi";
 import { BsBookmark } from "react-icons/bs";
-import { likePost } from "../../apiCalls/authCalls";
+import { likePost, commentPost } from "../../apiCalls/authCalls";
 import { updatePost } from "../redux/postSlice";
 
 
 function Post({ post }) {
   const { userData } = useSelector((state) => state.user);
   const dispatch = useDispatch();
-  
+
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [isLiking, setIsLiking] = useState(false);
   const [isCommenting, setIsCommenting] = useState(false);
+  const [comments, setComments] = useState(post.comments || []);
 
   // Check if current user liked this post
   const isLiked = post.likes?.some(id => id === userData?._id);
   const likesCount = post.likes?.length || 0;
-  const commentsCount = post.comments?.length || 0;
+  const commentsCount = comments.length;
 
   // Handle Like
   const handleLike = async () => {
     if (isLiking) return;
     setIsLiking(true);
-    
     try {
       const updatedPost = await likePost(post._id);
-      console.log(updatedPost)
       dispatch(updatePost(updatedPost));
     } catch (error) {
       console.error("Like error:", error);
@@ -39,7 +38,27 @@ function Post({ post }) {
 
   // Handle Comment
   const handleComment = async (e) => {
-   // Finish this function
+    e.preventDefault();
+    if (!commentText.trim()) return;
+    setIsCommenting(true);
+    try {
+      console.log("Attempting to comment on post:", post._id, "with text:", commentText);
+      const updatedPost = await commentPost(post._id, commentText);
+      console.log("Comment response:", updatedPost);
+      // Update comments with the response data
+      if (updatedPost && updatedPost.comments) {
+        setComments(updatedPost.comments);
+        // Also update the post in Redux store to reflect the new comment
+        dispatch(updatePost(updatedPost));
+      }
+      setCommentText("");
+      setShowComments(true);
+    } catch (error) {
+      console.error("Comment error:", error);
+      console.error("Error details:", error.response?.data);
+      alert(`Failed to add comment: ${error}`);
+    }
+    setIsCommenting(false);
   };
 
   return (
@@ -129,14 +148,16 @@ function Post({ post }) {
       {/* Comments section */}
       {showComments && commentsCount > 0 && (
         <div className="mt-3 max-h-[200px] overflow-y-auto border-t pt-3">
-          {post.comments.map((comment, idx) => (
+          {comments.map((comment, idx) => (
             <div key={idx} className="mb-3">
               <p className="text-sm">
-                <span className="font-semibold">{comment.author.userName}</span>{" "}
-                {comment.message}
+                <span className="font-semibold">
+                  {comment.user?.userName || comment.userName || (comment.author && comment.author.userName)}
+                </span>{" "}
+                {comment.text || comment.message}
               </p>
               <p className="text-xs text-neutral-400 mt-1">
-                {new Date(comment.createdAt).toLocaleDateString()}
+                {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : ""}
               </p>
             </div>
           ))}

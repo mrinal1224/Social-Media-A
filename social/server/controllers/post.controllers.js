@@ -65,19 +65,9 @@ export const uploadPost = async (req, res) => {
 };
 export const getAllPosts = async (req, res) => {
   try {
-    // Get current user with following list
-    const currentUser = await User.findById(req.userId);
-    
-    // Create array of user IDs to fetch posts from (followed users + self)
-    const userIds = [req.userId, ...currentUser.following];
-    
-    // Get posts only from these users
-    const posts = await Post.find({
-      author: { $in: userIds }
-    })
-      .populate("author", "name userName profileImage")
-      .sort({ createdAt: -1 }); // Latest posts first
-    
+    const posts = await Post.find({})
+      .populate("author", "userName profileImage")
+      .populate("comments.user", "userName");
     return res.status(200).json(posts);
   } catch (error) {
     return res.status(500).json({ message: `Cannot get posts error ${error}` });
@@ -122,10 +112,57 @@ export const like = async (req, res) => {
 };
 
 
-export const comment  = async(req , res)=>{
-   // postid
-   // userid
-   // userName
-   // text
-   // createdAt
-}
+export const comment = async (req, res) => {
+  try {
+    console.log("Comment request received:", req.body);
+    console.log("User ID from auth:", req.userId);
+    
+    const { postId, text } = req.body;
+    const userId = req.userId;
+    
+    if (!postId || !text) {
+      return res.status(400).json({ message: "PostId and text are required" });
+    }
+    
+    if (!userId) {
+      return res.status(401).json({ message: "User not authenticated" });
+    }
+    
+    const post = await Post.findById(postId);
+    if (!post) {
+      console.log("Post not found:", postId);
+      return res.status(404).json({ message: "No Post Found" });
+    }
+    
+    const user = await User.findById(userId);
+    if (!user) {
+      console.log("User not found:", userId);
+      return res.status(404).json({ message: "No User Found" });
+    }
+    
+    console.log("Creating comment for post:", postId, "by user:", userId);
+    
+    // Create comment object matching the schema
+    const newComment = {
+      user: userId,
+      text: text,
+      createdAt: new Date()
+    };
+    
+    post.comments.push(newComment);
+    await post.save();
+    
+    console.log("Comment saved successfully");
+    
+    // Populate the post with author and comments
+    const populatedPost = await Post.findById(postId)
+      .populate("author", "userName profileImage")
+      .populate("comments.user", "userName");
+    
+    console.log("Returning populated post with comments:", populatedPost.comments.length);
+    return res.status(200).json(populatedPost);
+  } catch (error) {
+    console.error("Comment error:", error);
+    return res.status(500).json({ message: `Cannot Comment: ${error.message}` });
+  }
+};
