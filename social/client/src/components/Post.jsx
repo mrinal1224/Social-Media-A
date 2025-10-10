@@ -3,14 +3,13 @@ import { useSelector, useDispatch } from "react-redux";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { BiComment } from "react-icons/bi";
 import { BsBookmark } from "react-icons/bs";
-import { likePost } from "../../apiCalls/authCalls";
-import { updatePost } from "../redux/postSlice";
-
+import { likePost, addCommentAPI } from "../../apiCalls/authCalls";
+import { updatePost, addComment } from "../redux/postSlice";
 
 function Post({ post }) {
   const { userData } = useSelector((state) => state.user);
   const dispatch = useDispatch();
-  
+
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [isLiking, setIsLiking] = useState(false);
@@ -25,7 +24,7 @@ function Post({ post }) {
   const handleLike = async () => {
     if (isLiking) return;
     setIsLiking(true);
-    
+
     try {
       const updatedPost = await likePost(post._id);
       console.log(updatedPost)
@@ -37,9 +36,40 @@ function Post({ post }) {
     }
   };
 
-  // Handle Comment
+  // Update the comments section with proper null checks and error handling:
+
+
   const handleComment = async (e) => {
-   // Finish this function
+    e.preventDefault();
+    if (!commentText.trim() || isCommenting) return;
+
+    setIsCommenting(true);
+    try {
+      const updatedPost = await addCommentAPI(post._id, commentText);
+
+      // Create new comment object matching backend structure
+      const newComment = {
+        user: {
+          _id: userData._id,
+          userName: userData.userName,
+          profileImage: userData.profileImage
+        },
+        text: commentText, // Changed from message to text
+        createdAt: new Date().toISOString()
+      };
+
+      dispatch(addComment({
+        postId: post._id,
+        comment: newComment
+      }));
+
+      setCommentText('');
+      setShowComments(true);
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    } finally {
+      setIsCommenting(false);
+    }
   };
 
   return (
@@ -127,21 +157,23 @@ function Post({ post }) {
       )}
 
       {/* Comments section */}
-      {showComments && commentsCount > 0 && (
-        <div className="mt-3 max-h-[200px] overflow-y-auto border-t pt-3">
-          {post.comments.map((comment, idx) => (
-            <div key={idx} className="mb-3">
-              <p className="text-sm">
-                <span className="font-semibold">{comment.author.userName}</span>{" "}
-                {comment.message}
-              </p>
-              <p className="text-xs text-neutral-400 mt-1">
-                {new Date(comment.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-          ))}
+       {showComments && (
+    <div className="mt-3 max-h-[200px] overflow-y-auto border-t pt-3">
+      {Array.isArray(post.comments) && post.comments.map((comment, idx) => (
+        <div key={idx} className="mb-3">
+          <p className="text-sm">
+            <span className="font-semibold">
+              {comment.user?.userName || 'Unknown user'}
+            </span>{" "}
+            {comment.text}
+          </p>
+          <p className="text-xs text-neutral-400 mt-1">
+            {new Date(comment.createdAt).toLocaleDateString()}
+          </p>
         </div>
-      )}
+      ))}
+    </div>
+  )}
 
       {/* Add comment */}
       <form onSubmit={handleComment} className="flex gap-2 mt-3 border-t pt-3">
