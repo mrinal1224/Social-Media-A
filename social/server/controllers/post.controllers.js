@@ -84,6 +84,40 @@ export const getAllPosts = async (req, res) => {
   }
 };
 
+<<<<<<< HEAD
+=======
+export const comment = async (req, res) => {
+  const postId = req.params.postId;
+  const post = await Post.findById(postId);
+  const {text} = req.body;
+
+  if (!text) {
+      return res.status(400).json({ message: "Comment text is required" });
+  }
+
+
+  if (!post) {
+    return res.status(404).json({ message: "No post Found" });
+  }
+
+  const newComment = {
+    user : req.userId,
+    text,
+    createdAt : new Date()
+  }
+
+  post.comments.push(newComment);
+  await post.save();
+
+  const populatedPost = await Post.findById(postId)
+      .populate('author', 'userName profileImage')
+      .populate('comments.user', 'userName profileImage');
+
+    return res.status(200).json(populatedPost);
+
+
+}
+>>>>>>> 9691e03 (Implemented Commenting Feature)
 
 export const like = async (req, res) => {
   // post id
@@ -120,12 +154,3 @@ export const like = async (req, res) => {
 
   return res.status(200).json(post);
 };
-
-
-export const comment  = async(req , res)=>{
-   // postid
-   // userid
-   // userName
-   // text
-   // createdAt
-}

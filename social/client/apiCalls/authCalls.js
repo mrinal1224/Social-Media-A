@@ -95,7 +95,7 @@ export const getAllPosts = async ()=>{
     return response.data;
   } catch (error) {
     throw error.response?.data?.message || "Failed to fetch Posts";
-  } 
+  }
 }
 
 export const likePost = async (postId) => {
@@ -135,6 +135,7 @@ export const getFollowStatus = async (userId) => {
     throw error.response?.data?.message || "Failed to get follow status";
   }
 }
+<<<<<<< HEAD
 
 // 
 export const getSuggestions = async () => {
@@ -218,3 +219,17 @@ export const viewStory = async (storyId) => {
 
 
 
+=======
+export const addCommentAPI = async (postId, text) => {
+  try {
+    const response = await api.post(
+      `/api/post/${postId}/comment`,
+      { text },
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to add comment";
+  }
+};
+>>>>>>> 9691e03 (Implemented Commenting Feature)
