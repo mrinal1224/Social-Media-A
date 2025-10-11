@@ -3,8 +3,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { BiComment } from "react-icons/bi";
 import { BsBookmark } from "react-icons/bs";
-import { likePost } from "../../apiCalls/authCalls";
+import { likePost, addComment } from "../../apiCalls/authCalls";
 import { updatePost } from "../redux/postSlice";
+import Comment from "./Comment";
 
 
 function Post({ post }) {
@@ -39,8 +40,21 @@ function Post({ post }) {
 
   // Handle Comment
   const handleComment = async (e) => {
-   // Finish this function
+    e.preventDefault();
+    if (!commentText.trim() || isCommenting) return;
+    
+    setIsCommenting(true);
+    try {
+      const updatedPost = await addComment(post._id, commentText);
+      dispatch(updatePost(updatedPost));
+      setCommentText("");
+    } catch (error) {
+      console.error("Comment error:", error);
+    } finally {
+      setIsCommenting(false);
+    }
   };
+
 
   return (
     <div className="w-full bg-white border border-neutral-200 rounded-xl p-4 mb-6 shadow-sm">
@@ -130,15 +144,11 @@ function Post({ post }) {
       {showComments && commentsCount > 0 && (
         <div className="mt-3 max-h-[200px] overflow-y-auto border-t pt-3">
           {post.comments.map((comment, idx) => (
-            <div key={idx} className="mb-3">
-              <p className="text-sm">
-                <span className="font-semibold">{comment.author.userName}</span>{" "}
-                {comment.message}
-              </p>
-              <p className="text-xs text-neutral-400 mt-1">
-                {new Date(comment.createdAt).toLocaleDateString()}
-              </p>
-            </div>
+            <Comment 
+              key={comment._id || idx} 
+              comment={comment} 
+              postId={post._id}
+            />
           ))}
         </div>
       )}
