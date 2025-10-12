@@ -3,7 +3,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { BiComment } from "react-icons/bi";
 import { BsBookmark } from "react-icons/bs";
-import { likePost } from "../../apiCalls/authCalls";
+import { AiOutlineDelete } from "react-icons/ai";
+import { likePost, addComment, deleteComment } from "../../apiCalls/authCalls";
 import { updatePost } from "../redux/postSlice";
 
 
@@ -28,7 +29,6 @@ function Post({ post }) {
     
     try {
       const updatedPost = await likePost(post._id);
-      console.log(updatedPost)
       dispatch(updatePost(updatedPost));
     } catch (error) {
       console.error("Like error:", error);
@@ -37,9 +37,49 @@ function Post({ post }) {
     }
   };
 
-  // Handle Comment
-  const handleComment = async (e) => {
-   // Finish this function
+  // Handle Add Comment
+  const handleAddComment = async (e) => {
+    e.preventDefault();
+    if (!commentText.trim() || isCommenting) return;
+    
+    setIsCommenting(true);
+    try {
+      const response = await addComment(post._id, commentText);
+      
+      // Update the post in Redux store with the new comment
+      const updatedPost = {
+        ...post,
+        comments: [...post.comments, response.comment]
+      };
+      dispatch(updatePost(updatedPost));
+      
+      // Clear the comment input
+      setCommentText("");
+    } catch (error) {
+      console.error("Error adding comment:", error);
+      alert("Failed to add comment. Please try again.");
+    } finally {
+      setIsCommenting(false);
+    }
+  };
+
+  // Handle Delete Comment
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm("Are you sure you want to delete this comment?")) return;
+    
+    try {
+      await deleteComment(post._id, commentId);
+      
+      // Update the post in Redux store by removing the deleted comment
+      const updatedPost = {
+        ...post,
+        comments: post.comments.filter(comment => comment._id !== commentId)
+      };
+      dispatch(updatePost(updatedPost));
+    } catch (error) {
+      console.error("Error deleting comment:", error);
+      alert("Failed to delete comment. Please try again.");
+    }
   };
 
   return (
@@ -127,24 +167,40 @@ function Post({ post }) {
       )}
 
       {/* Comments section */}
-      {showComments && commentsCount > 0 && (
+      {showComments && (
         <div className="mt-3 max-h-[200px] overflow-y-auto border-t pt-3">
-          {post.comments.map((comment, idx) => (
-            <div key={idx} className="mb-3">
-              <p className="text-sm">
-                <span className="font-semibold">{comment.author.userName}</span>{" "}
-                {comment.message}
-              </p>
-              <p className="text-xs text-neutral-400 mt-1">
-                {new Date(comment.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-          ))}
+          {commentsCount > 0 ? (
+            post.comments.map((comment, idx) => (
+              <div key={comment._id || idx} className="mb-3 flex items-start justify-between group">
+                <div className="flex-1">
+                  <p className="text-sm">
+                    <span className="font-semibold">{comment.user?.userName || 'Unknown User'}</span>{" "}
+                    {comment.text}
+                  </p>
+                  <p className="text-xs text-neutral-400 mt-1">
+                    {new Date(comment.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                {/* Delete button - only show for comment author or post author */}
+                {(comment.user?._id === userData?._id || post.author._id === userData?._id) && (
+                  <button
+                    onClick={() => handleDeleteComment(comment._id)}
+                    className="ml-2 p-1 opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700"
+                    title="Delete comment"
+                  >
+                    <AiOutlineDelete size={14} />
+                  </button>
+                )}
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-neutral-500 text-center py-4">No comments yet</p>
+          )}
         </div>
       )}
 
       {/* Add comment */}
-      <form onSubmit={handleComment} className="flex gap-2 mt-3 border-t pt-3">
+      <form onSubmit={handleAddComment} className="flex gap-2 mt-3 border-t pt-3">
         <input
           type="text"
           placeholder="Add a comment..."
