@@ -26,9 +26,7 @@ const postSlice = createSlice({
       if (post) post.comments.push(comment);
     }
 
-    // clearUserData : (state , action)=>{
-    //     state.userData = null
-    // }
+    
   },
 });
 
