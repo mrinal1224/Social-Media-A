@@ -78,6 +78,9 @@ export const getAllPosts = async (req, res) => {
       .populate("author", "name userName profileImage")
       .sort({ createdAt: -1 }); // Latest posts first
     
+    const posts = await Post.find({})
+      .populate("author", "userName profileImage")
+      .populate("comments.user", "userName profileImage");
     return res.status(200).json(posts);
   } catch (error) {
     return res.status(500).json({ message: `Cannot get posts error ${error}` });
@@ -123,9 +126,28 @@ export const like = async (req, res) => {
 
 
 export const comment  = async(req , res)=>{
-   // postid
-   // userid
-   // userName
-   // text
-   // createdAt
+   try {
+     const postId = req.params.postId;
+     const { text } = req.body;
+
+     if (!text || !text.trim()) {
+       return res.status(400).json({ message: "Comment text is required" });
+     }
+
+     const post = await Post.findById(postId);
+     if (!post) {
+       return res.status(404).json({ message: "No post Found" });
+     }
+
+     post.comments.push({ user: req.userId, text: text.trim() });
+     await post.save();
+
+     const populatedPost = await Post.findById(post._id)
+       .populate("author", "userName profileImage")
+       .populate("comments.user", "userName profileImage");
+
+     return res.status(201).json(populatedPost);
+   } catch (error) {
+     return res.status(500).json({ message: "Failed to add comment" });
+   }
 }

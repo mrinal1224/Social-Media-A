@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { BiComment } from "react-icons/bi";
 import { BsBookmark } from "react-icons/bs";
-import { likePost } from "../../apiCalls/authCalls";
+import { likePost, commentOnPost } from "../../apiCalls/authCalls";
 import { updatePost } from "../redux/postSlice";
 
 
@@ -39,7 +39,20 @@ function Post({ post }) {
 
   // Handle Comment
   const handleComment = async (e) => {
-   // Finish this function
+   e.preventDefault();
+   const text = commentText.trim();
+   if (!text || isCommenting) return;
+   setIsCommenting(true);
+   try {
+     const updatedPost = await commentOnPost(post._id, text);
+     dispatch(updatePost(updatedPost));
+     setCommentText("");
+     if (!showComments) setShowComments(true);
+   } catch (error) {
+     console.error("Comment error:", error);
+   } finally {
+     setIsCommenting(false);
+   }
   };
 
   return (
@@ -132,8 +145,8 @@ function Post({ post }) {
           {post.comments.map((comment, idx) => (
             <div key={idx} className="mb-3">
               <p className="text-sm">
-                <span className="font-semibold">{comment.author.userName}</span>{" "}
-                {comment.message}
+                <span className="font-semibold">{comment.user?.userName}</span>{" "}
+                {comment.text}
               </p>
               <p className="text-xs text-neutral-400 mt-1">
                 {new Date(comment.createdAt).toLocaleDateString()}
