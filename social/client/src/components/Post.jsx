@@ -3,8 +3,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { BiComment } from "react-icons/bi";
 import { BsBookmark } from "react-icons/bs";
-import { likePost } from "../../apiCalls/authCalls";
+import { likePost, addComment } from "../../apiCalls/authCalls";
 import { updatePost } from "../redux/postSlice";
+import Comment from "./Comment";
 
 
 function Post({ post }) {
@@ -39,7 +40,19 @@ function Post({ post }) {
 
   // Handle Comment
   const handleComment = async (e) => {
-   // Finish this function
+    e.preventDefault();
+    if (!commentText.trim() || isCommenting) return;
+
+    setIsCommenting(true);
+    try {
+      const updatedPost = await addComment(post._id, commentText.trim());
+      dispatch(updatePost(updatedPost));
+      setCommentText("");
+    } catch (error) {
+      console.error("Comment error:", error);
+    } finally {
+      setIsCommenting(false);
+    }
   };
 
   return (
@@ -97,6 +110,9 @@ function Post({ post }) {
           className="flex items-center gap-1 transition-all"
         >
           <BiComment className="hover:text-blue-500" />
+          {commentsCount > 0 && (
+            <span className="text-sm text-neutral-600">{commentsCount}</span>
+          )}
         </button>
 
         <BsBookmark className="cursor-pointer hover:text-green-500 transition ml-auto" />
@@ -127,39 +143,39 @@ function Post({ post }) {
       )}
 
       {/* Comments section */}
-      {showComments && commentsCount > 0 && (
-        <div className="mt-3 max-h-[200px] overflow-y-auto border-t pt-3">
-          {post.comments.map((comment, idx) => (
-            <div key={idx} className="mb-3">
-              <p className="text-sm">
-                <span className="font-semibold">{comment.author.userName}</span>{" "}
-                {comment.message}
-              </p>
-              <p className="text-xs text-neutral-400 mt-1">
-                {new Date(comment.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-          ))}
+      {showComments && (
+        <div className="mt-3 max-h-[300px] overflow-y-auto border-t pt-3">
+          {commentsCount > 0 ? (
+            post.comments.map((comment) => (
+              <Comment key={comment._id} comment={comment} postId={post._id} />
+            ))
+          ) : (
+            <p className="text-sm text-neutral-500 text-center py-4">
+              No comments yet. Be the first to comment!
+            </p>
+          )}
         </div>
       )}
 
       {/* Add comment */}
-      <form onSubmit={handleComment} className="flex gap-2 mt-3 border-t pt-3">
-        <input
-          type="text"
-          placeholder="Add a comment..."
-          value={commentText}
-          onChange={(e) => setCommentText(e.target.value)}
-          className="flex-1 px-3 py-2 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-neutral-400"
-        />
-        <button
-          type="submit"
-          disabled={!commentText.trim() || isCommenting}
-          className="px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
-        >
-          {isCommenting ? "..." : "Post"}
-        </button>
-      </form>
+      {showComments && (
+        <form onSubmit={handleComment} className="flex gap-2 mt-3 border-t pt-3">
+          <input
+            type="text"
+            placeholder="Add a comment..."
+            value={commentText}
+            onChange={(e) => setCommentText(e.target.value)}
+            className="flex-1 px-3 py-2 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-neutral-400"
+          />
+          <button
+            type="submit"
+            disabled={!commentText.trim() || isCommenting}
+            className="px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          >
+            {isCommenting ? "..." : "Post"}
+          </button>
+        </form>
+      )}
     </div>
   );
 }
