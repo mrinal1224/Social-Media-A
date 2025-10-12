@@ -10,6 +10,9 @@ import cookieParser from "cookie-parser";
 import storyRouter from "./routes/story.routes.js";
 import cors from 'cors'
 
+
+const commentRoutes = require('./routes/commentRoutes');
+app.use('/api/comments', commentRoutes);
 const app = express();
 const PORT = 8000;
 // Middlewares
