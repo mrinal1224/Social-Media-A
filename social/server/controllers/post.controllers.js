@@ -128,4 +128,73 @@ export const comment  = async(req , res)=>{
    // userName
    // text
    // createdAt
-}
+  try {
+    const { postId } = req.params;
+    const { text } = req.body;
+    const userId = req.userId;
+
+    if (!text || text.trim() === '') {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Add comment to the post
+    const newComment = {
+      user: userId,
+      text: text.trim(),
+      createdAt: new Date()
+    };
+
+    post.comments.push(newComment);
+    await post.save();
+
+    // Populate the comment with user details
+    const updatedPost = await Post.findById(postId)
+      .populate('comments.user', 'userName profileImage')
+      .populate('author', 'userName profileImage');
+
+    return res.status(200).json(updatedPost);
+  } catch (error) {
+    return res.status(500).json({ message: `Error adding comment: ${error.message}` });
+  }
+};
+
+export const deleteComment = async (req, res) => {
+  try {
+    const { postId, commentId } = req.params;
+    const userId = req.userId;
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Find the comment
+    const comment = post.comments.id(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    // Check if user is the author of the comment or the post author
+    if (comment.user.toString() !== userId.toString() && post.author.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Not authorized to delete this comment" });
+    }
+
+    // Remove the comment
+    post.comments.pull(commentId);
+    await post.save();
+
+    // Return updated post
+    const updatedPost = await Post.findById(postId)
+      .populate('comments.user', 'userName profileImage')
+      .populate('author', 'userName profileImage');
+
+    return res.status(200).json(updatedPost);
+  } catch (error) {
+    return res.status(500).json({ message: `Error deleting comment: ${error.message}` });
+  }
+};
