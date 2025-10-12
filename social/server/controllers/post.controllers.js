@@ -33,21 +33,18 @@ export const uploadPost = async (req, res) => {
         .json({ message: "Failed to get media URL from Cloudinary" });
     }
 
-    // create the post
-
+ 
     const post = await Post.create({
       mediaType,
       caption,
       mediaUrl,
       author: req.userId,
     });
-    // we need to show posts for a individual user
-    const user = await User.findById(req.userId).populate("posts");
+     const user = await User.findById(req.userId).populate("posts");
     user.posts.push(post._id);
     await user.save();
 
-    // we need to show posts on the feed
-
+ 
     const populatedPost = await Post.findById(post._id).populate(
       "author",
       "userName profileImage"
