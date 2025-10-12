@@ -18,6 +18,14 @@ const postSlice = createSlice({
       if (index !== -1) {
         state.postData[index] = updatedPost
       }
+    },
+    
+    addComment: (state, action) => {
+      const { postId, comment } = action.payload;
+      const post = state.postData.find(post => post._id === postId);
+      if (post) {
+        post.comments.push(comment);
+      }
     }
 
     // clearUserData : (state , action)=>{
@@ -26,5 +34,5 @@ const postSlice = createSlice({
   },
 });
 
-export const { setPostData , updatePost} = postSlice.actions;
+export const { setPostData , updatePost, addComment} = postSlice.actions;
 export default postSlice.reducer;
