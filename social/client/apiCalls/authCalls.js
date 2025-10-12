@@ -44,10 +44,23 @@ export const signInUser = async ({ userName, password }) => {
 export const getCurrentUser = async () => {
   try {
     const response = await api.get("/api/user/current", {withCredentials:true});
-    return response.data; // return just the data
+    return response.data;
   } catch (error) {
-    // standardize error handling
     throw error.response?.data?.message || "Something went wrong";
+  }
+};
+
+export const addCommentAPI = async (postId, text) => {
+  try {
+    const response = await api.post(
+      `/api/post/${postId}/comment`,
+      { text },
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to add comment";
+  }
   }
 };
 

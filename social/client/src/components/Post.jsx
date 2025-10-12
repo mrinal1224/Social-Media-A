@@ -3,8 +3,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { BiComment } from "react-icons/bi";
 import { BsBookmark } from "react-icons/bs";
-import { likePost } from "../../apiCalls/authCalls";
-import { updatePost } from "../redux/postSlice";
+import { likePost, addCommentAPI } from "../../apiCalls/authCalls";
+import { updatePost, addComment } from "../redux/postSlice";
 
 
 function Post({ post }) {
@@ -37,9 +37,29 @@ function Post({ post }) {
     }
   };
 
-  // Handle Comment
   const handleComment = async (e) => {
-   // Finish this function
+    e.preventDefault();
+    if (!commentText.trim() || isCommenting) return;
+    setIsCommenting(true);
+    try {
+      await addCommentAPI(post._id, commentText);
+      const newComment = {
+        user: {
+          _id: userData._id,
+          userName: userData.userName,
+          profileImage: userData.profileImage
+        },
+        text: commentText,
+        createdAt: new Date().toISOString()
+      };
+      dispatch(addComment({ postId: post._id, comment: newComment }));
+      setCommentText("");
+      setShowComments(true);
+    } catch (err) {
+      console.error("Error adding comment:", err);
+    } finally {
+      setIsCommenting(false);
+    }
   };
 
   return (
@@ -98,6 +118,22 @@ function Post({ post }) {
         >
           <BiComment className="hover:text-blue-500" />
         </button>
+
+        {/* Comments section */}
+        {showComments && (
+          <div className="mt-3 max-h-[200px] overflow-y-auto border-t pt-3">
+            {Array.isArray(post.comments) && post.comments.map((comment, idx) => (
+              <div key={idx} className="mb-3">
+                <p className="text-sm">
+                  <span className="font-semibold">{comment.user?.userName || "Unknown user"}</span> {comment.text}
+                </p>
+                <p className="text-xs text-neutral-400 mt-1">
+                  {new Date(comment.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
 
         <BsBookmark className="cursor-pointer hover:text-green-500 transition ml-auto" />
       </div>
