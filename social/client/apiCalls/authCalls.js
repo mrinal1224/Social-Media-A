@@ -6,6 +6,19 @@ const api = axios.create({
   withCredentials: true,
 });
 
+export const addCommentAPI = async (postId, text) => {
+  try {
+    const response = await api.post(
+      `/api/post/${postId}/comment`,
+      { text },
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to add comment";
+  }
+};
+
 // route - /api/auth/signup
 
 export const signUpUser = async ({ name, userName, email, password }) => {
