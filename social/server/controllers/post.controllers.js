@@ -76,6 +76,10 @@ export const getAllPosts = async (req, res) => {
       author: { $in: userIds }
     })
       .populate("author", "name userName profileImage")
+      .populate({
+        path: "comments.user",
+        select: "userName profileImage"
+      })
       .sort({ createdAt: -1 }); // Latest posts first
     
     return res.status(200).json(posts);
@@ -122,10 +126,81 @@ export const like = async (req, res) => {
 };
 
 
-export const comment  = async(req , res)=>{
-   // postid
-   // userid
-   // userName
-   // text
-   // createdAt
-}
+export const addComment = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { text } = req.body;
+    const userId = req.userId;
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Add comment to post
+    const newComment = {
+      user: userId,
+      text: text.trim(),
+      createdAt: new Date()
+    };
+
+    post.comments.push(newComment);
+    await post.save();
+
+    // Populate the comment with user details
+    await post.populate({
+      path: "comments.user",
+      select: "userName profileImage"
+    });
+
+    // Get the newly added comment
+    const addedComment = post.comments[post.comments.length - 1];
+
+    return res.status(201).json({
+      message: "Comment added successfully",
+      comment: addedComment
+    });
+  } catch (error) {
+    return res.status(500).json({ message: `Error adding comment: ${error.message}` });
+  }
+};
+
+export const deleteComment = async (req, res) => {
+  try {
+    const { postId, commentId } = req.params;
+    const userId = req.userId;
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Find the comment
+    const commentIndex = post.comments.findIndex(
+      comment => comment._id.toString() === commentId
+    );
+
+    if (commentIndex === -1) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    const comment = post.comments[commentIndex];
+
+    // Check if user is the author of the comment or the post author
+    if (comment.user.toString() !== userId && post.author.toString() !== userId) {
+      return res.status(403).json({ message: "Not authorized to delete this comment" });
+    }
+
+    // Remove the comment
+    post.comments.splice(commentIndex, 1);
+    await post.save();
+
+    return res.status(200).json({ message: "Comment deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ message: `Error deleting comment: ${error.message}` });
+  }
+};

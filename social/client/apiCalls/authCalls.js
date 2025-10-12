@@ -209,6 +209,30 @@ export const viewStory = async (storyId) => {
 
 // Delete the Story
 
+// Comment API calls
+
+export const addComment = async (postId, text) => {
+  try {
+    const response = await api.post(`/api/post/comment/${postId}`, { text }, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to add comment";
+  }
+};
+
+export const deleteComment = async (postId, commentId) => {
+  try {
+    const response = await api.delete(`/api/post/comment/${postId}/${commentId}`, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to delete comment";
+  }
+};
+
 
 
 
