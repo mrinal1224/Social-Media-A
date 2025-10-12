@@ -4,9 +4,7 @@ import User from "../models/user.model.js";
 
 export const uploadPost = async (req, res) => {
   try {
-    // caption
-    //mediaType
-    // mediaUrl
+   
     const { mediaType, caption } = req.body;
 
     console.log("Request body:", req.body);
@@ -57,22 +55,18 @@ export const uploadPost = async (req, res) => {
 
     return res.status(201).json(populatedPost);
 
-    // userName
-    // profileImage
+   
   } catch (error) {
     res.status(500).json({ message: `Cannot Upload$ ${error}` });
   }
 };
 export const getAllPosts = async (req, res) => {
   try {
-    // Get current user with following list
-    const currentUser = await User.findById(req.userId);
+     const currentUser = await User.findById(req.userId);
     
-    // Create array of user IDs to fetch posts from (followed users + self)
-    const userIds = [req.userId, ...currentUser.following];
+     const userIds = [req.userId, ...currentUser.following];
     
-    // Get posts only from these users
-    const posts = await Post.find({
+     const posts = await Post.find({
       author: { $in: userIds }
     })
       .populate("author", "name userName profileImage")
@@ -86,11 +80,7 @@ export const getAllPosts = async (req, res) => {
 
 
 export const like = async (req, res) => {
-  // post id
-  // userId
-  // already liked the post - dislike
-  // if not - like
-  // userName
+ 
   const postId = req.params.postId;
 
   const post = await Post.findById(postId);
@@ -99,16 +89,14 @@ export const like = async (req, res) => {
     return res.status(404).json({ message: "No post Found" });
   }
 
-  // if this is already liked?
-  // userId -> likes[] - all user Ids
+ 
 
   const alreadyLiked = post.likes.some(
     (id) => id.toString() === req.userId.toString()
   );
 
   if (alreadyLiked) {
-    // post is already liked
-    post.likes = post.likes.filter(
+     post.likes = post.likes.filter(
       (id) => id.toString() !== req.userId.toString()
     );
   } else {
