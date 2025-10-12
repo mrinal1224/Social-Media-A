@@ -20,11 +20,15 @@ const postSlice = createSlice({
       }
     }
 
-    // clearUserData : (state , action)=>{
-    //     state.userData = null
-    // }
+    ,addComment: (state, action) => {
+      const { postId, comment } = action.payload;
+      const post = state.postData.find(p => p._id === postId);
+      if (post) post.comments.push(comment);
+    }
+
+    
   },
 });
 
-export const { setPostData , updatePost} = postSlice.actions;
+export const { setPostData , updatePost, addComment} = postSlice.actions;
 export default postSlice.reducer;
