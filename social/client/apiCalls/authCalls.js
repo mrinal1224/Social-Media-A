@@ -207,6 +207,19 @@ export const viewStory = async (storyId) => {
   }
 };
 
+export const addCommentAPI = async (postId, text) => {
+  try {
+    const response = await api.post(
+      `/api/post/${postId}/comment`,
+      { text },
+      { withCredentials: true }
+    );
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to add comment";
+  }
+};
+
 // Delete the Story
 
 
