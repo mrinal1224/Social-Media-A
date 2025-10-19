@@ -13,6 +13,7 @@ import Upload from "./pages/Upload.jsx";
 import useAllPosts from "../hooks/useAllPosts.jsx";
 import getSuggestedUsers from "../hooks/getSuggestedUsers.jsx";
 import CreateStory from "./components/CreateStory.jsx";
+import Messages from "./pages/Messages.jsx";
 
 
 
@@ -33,6 +34,7 @@ function App() {
         <Route path="/editprofile/" element={userData?<EditProfile/>:<Navigate to='/signin'/>} />
         <Route path="/upload" element={<Upload/>} />
         <Route path='/create-story' element={<CreateStory/>}/>
+        <Route path="/messages" element={userData ? <Messages /> : <Navigate to='/signin' />} />
         
       </Routes>
     </>
