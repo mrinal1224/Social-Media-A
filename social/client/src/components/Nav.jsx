@@ -3,6 +3,7 @@ import React from "react";
 import { GoHomeFill } from "react-icons/go";
 import { FiSearch, FiPlusSquare } from "react-icons/fi";
 import { RxVideo } from "react-icons/rx";
+import { RiMessageFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 
@@ -25,10 +26,11 @@ function NavDesign() {
       "
     >
       {/* Icons */}
-      <GoHomeFill className="text-neutral-700 cursor-pointer w-[24px] h-[24px] hover:text-black" />
+      <GoHomeFill onClick={() => navigate('/home')} className="text-neutral-700 cursor-pointer w-[24px] h-[24px] hover:text-black" />
       <FiSearch className="text-neutral-700 cursor-pointer w-[24px] h-[24px] hover:text-black" />
       <FiPlusSquare  onClick={()=>navigate(`/upload`)} className="text-neutral-700 cursor-pointer w-[24px] h-[24px] hover:text-black" />
       <RxVideo className="text-neutral-700 cursor-pointer w-[26px] h-[26px] hover:text-black" />
+      <RiMessageFill onClick={() => navigate('/messages')} className="text-neutral-700 cursor-pointer w-[24px] h-[24px] hover:text-black" />
 
       {/* Avatar */}
       <div onClick={()=>navigate(`/profile/${userData?.userName}`)} className="w-[40px] h-[40px] rounded-full overflow-hidden border border-neutral-300 cursor-pointer">
