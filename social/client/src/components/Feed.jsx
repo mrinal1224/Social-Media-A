@@ -40,7 +40,7 @@ function FeedDesign() {
         {/* Feed Posts */}
         <div className="flex-1 w-full px-6 py-6 overflow-y-auto bg-neutral-50">
            {postData?.map((post)=>(
-             <Post post={post}/>
+             <Post key={post._id} post={post} />
            ))}
         </div>
       </div>
