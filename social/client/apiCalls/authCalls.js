@@ -106,7 +106,15 @@ export const likePost = async (postId) => {
     throw error.response?.data?.message || "Failed to like post";
   }
 }
-
+//comment call
+export const addComment = async (postId, text) => {
+  try {
+    const response = await api.post(`/api/post/comment/${postId}`, { text }, { withCredentials: true })
+    return response.data
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to add comment";
+  }
+}
 // follow and unfollow calls
 
 export const followUser = async (userId) => {
