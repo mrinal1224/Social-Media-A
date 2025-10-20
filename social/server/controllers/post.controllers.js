@@ -68,14 +68,18 @@ export const getAllPosts = async (req, res) => {
     // Get current user with following list
     const currentUser = await User.findById(req.userId);
     
+     if (!currentUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     // Create array of user IDs to fetch posts from (followed users + self)
-    const userIds = [req.userId, ...currentUser.following];
+    const userIds = [req.userId, ...(currentUser.following || [])];
     
     // Get posts only from these users
     const posts = await Post.find({
       author: { $in: userIds }
     })
-      .populate("author", "name userName profileImage")
+      .populate("comments.user", "userName profileImage")
       .sort({ createdAt: -1 }); // Latest posts first
     
     return res.status(200).json(posts);
@@ -128,4 +132,25 @@ export const comment  = async(req , res)=>{
    // userName
    // text
    // createdAt
-}
+
+  try {
+    const { postId } = req.params;
+    const trimmed = (req.body?.text ?? "").trim();
+    if (!postId) return res.status(400).json({ message: "Post ID is required" });
+    if (!trimmed) return res.status(400).json({ message: "Comment text is required" });
+
+    const updated = await Post.findByIdAndUpdate(
+      postId,
+      { $push: { comments: { user: req.userId, text: trimmed } } },
+      { new: true }
+    )
+      .populate("author", "userName profileImage")
+      .populate("comments.user", "userName profileImage");
+
+    if (!updated) return res.status(404).json({ message: "No post Found" });
+
+    return res.status(201).json(updated);
+  } catch {
+    return res.status(500).json({ message: "Failed to add comment" });
+  }
+};
