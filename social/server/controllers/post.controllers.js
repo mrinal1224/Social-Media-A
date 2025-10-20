@@ -128,4 +128,48 @@ export const comment  = async(req , res)=>{
    // userName
    // text
    // createdAt
+
+  try {
+    const postId = req.params.postId;
+
+    const { commentText } = req.body;
+
+    if (!commentText || commentText.trim() === "") {
+      return res
+        .status(400)
+        .json({ message: "Empty comment. Comment text is required" });
+    }
+
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ message: "No post Found" });
+    }
+
+    const newComment = {
+      user: req.userId,
+
+      text,
+
+      createdAt: Date.now(),
+    };
+
+    post.comments.push(newComment);
+
+    await post.save();
+
+    await post.populate({
+      path: "comments.user",
+
+      select: "userName profileImage",
+    });
+
+    await post.populate("author", "userName profileImage");
+
+    return res.status(201).json(post);
+  } catch (error) {
+    console.error(error);
+
+    return res.status(500).json({ message: `Cannot add comment: ${error.message}` });
+  }
 }
