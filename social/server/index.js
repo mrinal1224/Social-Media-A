@@ -9,6 +9,8 @@ import followRouter from "./routes/followers.routes.js";
 import cookieParser from "cookie-parser";
 import storyRouter from "./routes/story.routes.js";
 import cors from 'cors'
+const commentRoutes = require("./routes/commentRoutes");
+
 
 const app = express();
 const PORT = 8000;
@@ -29,6 +31,7 @@ app.use("/api/user", userRouter);
 app.use("/api/post", postRouter);
 app.use("/api/follow", followRouter);
 app.use("/api/story", storyRouter);
+app.use("/api/comments", commentRoutes);
 
 connectDB();
 
