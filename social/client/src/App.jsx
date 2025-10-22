@@ -20,6 +20,7 @@ function App() {
   useCurrentUser()
   useAllPosts()
   getSuggestedUsers()
+  // get userData using useSelector (redux)
   const {userData ,profileData} = useSelector(state=>state.user)
 
   return (
