@@ -26,6 +26,23 @@ const storySchema = new mongoose.Schema(
       },
     ],
 
+    comments: [
+      {
+        user: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "user",
+        },
+        text: {
+          type: String,
+          required: true
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now
+        }
+      },
+    ],
+
     expiresAt: {
       type: Date,
       default: function() {

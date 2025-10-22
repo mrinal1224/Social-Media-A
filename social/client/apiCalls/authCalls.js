@@ -107,6 +107,15 @@ export const likePost = async (postId) => {
   }
 }
 
+export const commentPost = async (postId, text) => {
+  try {
+    const response = await api.post(`/api/post/comment/${postId}`, { text }, { withCredentials: true })
+    return response.data
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to comment on post";
+  }
+}
+
 // follow and unfollow calls
 
 export const followUser = async (userId) => {
@@ -204,6 +213,18 @@ export const viewStory = async (storyId) => {
     return response.data;
   } catch (error) {
     throw error.response?.data?.message || "Failed to view story";
+  }
+};
+
+// Comment on a story
+export const commentStory = async (storyId, text) => {
+  try {
+    const response = await api.post(`/api/story/comment/${storyId}`, { text }, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to comment on story";
   }
 };
 
