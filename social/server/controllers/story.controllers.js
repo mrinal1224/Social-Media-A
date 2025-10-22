@@ -44,6 +44,7 @@ export const getAllStories = async (req, res) => {
     })
       .populate("author", "userName profileImage name")
       .populate("viewers", "userName profileImage")
+      .populate("comments.user", "userName profileImage")
       .sort({ createdAt: -1 });
 
     // Group stories by author
@@ -86,6 +87,7 @@ export const getMyStories = async (req, res) => {
     })
       .populate("author", "userName profileImage name")
       .populate("viewers", "userName profileImage")
+      .populate("comments.user", "userName profileImage")
       .sort({ createdAt: -1 });
 
     return res.status(200).json(stories);
@@ -106,6 +108,7 @@ export const getUserStories = async (req, res) => {
     })
       .populate("author", "userName profileImage name")
       .populate("viewers", "userName profileImage")
+      .populate("comments.user", "userName profileImage")
       .sort({ createdAt: -1 });
 
     return res.status(200).json(stories);
@@ -144,12 +147,55 @@ export const viewStory = async (req, res) => {
     // Populate and return updated story
     const updatedStory = await Story.findById(storyId)
       .populate("author", "userName profileImage name")
-      .populate("viewers", "userName profileImage");
+      .populate("viewers", "userName profileImage")
+      .populate("comments.user", "userName profileImage");
 
     return res.status(200).json(updatedStory);
   } catch (error) {
     console.error("View story error:", error);
     return res.status(500).json({ message: "Failed to view story" });
+  }
+};
+
+// Add comment to story
+export const commentStory = async (req, res) => {
+  try {
+    const { storyId } = req.params;
+    const { text } = req.body;
+    const userId = req.userId;
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
+
+    const story = await Story.findById(storyId);
+    if (!story) {
+      return res.status(404).json({ message: "Story not found" });
+    }
+
+    // Check if story is expired
+    if (new Date() > story.expiresAt) {
+      return res.status(400).json({ message: "Story has expired" });
+    }
+
+    // Add comment to story
+    story.comments.push({
+      user: userId,
+      text: text.trim(),
+      createdAt: new Date()
+    });
+
+    await story.save();
+
+    // Populate the comment with user details
+    const updatedStory = await Story.findById(storyId)
+      .populate("author", "userName profileImage")
+      .populate("comments.user", "userName profileImage");
+
+    return res.status(200).json(updatedStory);
+  } catch (error) {
+    console.error("Story comment error:", error);
+    return res.status(500).json({ message: "Failed to add comment to story" });
   }
 };
 

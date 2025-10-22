@@ -5,6 +5,7 @@ import {
   getUserStories,
   viewStory,
   getMyStories,
+  commentStory,
 } from "../controllers/story.controllers.js";
 import isAuth from "../middlewares/isAuth.js";
 import { upload } from "../middlewares/multer.js";
@@ -25,6 +26,9 @@ storyRouter.get("/user/:userId", isAuth, getUserStories);
 
 // View a story (mark as viewed)
 storyRouter.post("/view/:storyId", isAuth, viewStory);
+
+// Comment on a story
+storyRouter.post("/comment/:storyId", isAuth, commentStory);
 
 // Delete a story
 // storyRouter.delete("/:storyId", isAuth, deleteStory);

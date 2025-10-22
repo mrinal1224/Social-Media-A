@@ -4,12 +4,16 @@ import { updateStoryViewers, } from "../redux/storySlice";
 import { IoClose } from "react-icons/io5";
 import { FiTrash2 } from "react-icons/fi";
 import { AiFillEye } from "react-icons/ai";
-import { viewStory  } from "../../apiCalls/authCalls";
+import { BiComment } from "react-icons/bi";
+import { viewStory, commentStory } from "../../apiCalls/authCalls";
 
 function StoryViewer({ storyGroup, onClose, currentUserId }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [showViewers, setShowViewers] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [isCommenting, setIsCommenting] = useState(false);
   const dispatch = useDispatch();
 
   const stories = storyGroup.stories || [];
@@ -89,6 +93,27 @@ function StoryViewer({ storyGroup, onClose, currentUserId }) {
     return `${hours}h ago`;
   };
 
+  // Handle comment submission
+  const handleComment = async (e) => {
+    e.preventDefault();
+    if (!commentText.trim() || isCommenting) return;
+    
+    setIsCommenting(true);
+    try {
+      const updatedStory = await commentStory(currentStory._id, commentText);
+      // Update the story in the stories array
+      const updatedStories = stories.map(story => 
+        story._id === currentStory._id ? updatedStory : story
+      );
+      storyGroup.stories = updatedStories;
+      setCommentText("");
+    } catch (error) {
+      console.error("Comment error:", error);
+    } finally {
+      setIsCommenting(false);
+    }
+  };
+
   if (!currentStory) return null;
 
   return (
@@ -135,6 +160,13 @@ function StoryViewer({ storyGroup, onClose, currentUserId }) {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowComments(!showComments)}
+              className="flex items-center gap-1 text-white"
+            >
+              <BiComment className="w-5 h-5" />
+              <span className="text-sm">{currentStory.comments?.length || 0}</span>
+            </button>
             {isOwnStory && (
               <>
                 <button
@@ -184,6 +216,59 @@ function StoryViewer({ storyGroup, onClose, currentUserId }) {
             />
           )}
         </div>
+
+        {/* Comments Panel */}
+        {showComments && (
+          <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-4 max-h-[50vh] overflow-y-auto">
+            <h3 className="font-bold text-lg mb-3">
+              Comments ({currentStory.comments?.length || 0})
+            </h3>
+            
+            {/* Comments List */}
+            {currentStory.comments && currentStory.comments.length > 0 ? (
+              <div className="space-y-3 mb-4">
+                {currentStory.comments.map((comment, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <img
+                      src={comment.user.profileImage || "/default-avatar.png"}
+                      alt={comment.user.userName}
+                      className="w-8 h-8 rounded-full"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm">
+                        <span className="font-semibold">{comment.user.userName}</span>{" "}
+                        {comment.text}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {getTimeAgo(comment.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-center py-4">No comments yet</p>
+            )}
+
+            {/* Add Comment Form */}
+            <form onSubmit={handleComment} className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Add a comment..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+              />
+              <button
+                type="submit"
+                disabled={!commentText.trim() || isCommenting}
+                className="px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                {isCommenting ? "..." : "Post"}
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* Viewers Panel */}
         {showViewers && isOwnStory && (
