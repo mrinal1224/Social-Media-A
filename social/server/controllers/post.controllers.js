@@ -128,4 +128,42 @@ export const comment  = async(req , res)=>{
    // userName
    // text
    // createdAt
+    try {
+    const { postId } = req.params;
+    const { text } = req.body; // comment text
+    const userId = req.userId;
+
+    if (!text || text.trim() === "") {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Create new comment object
+    const newComment = {
+      user: userId,
+      text,
+      createdAt: new Date(),
+    };
+
+    // Add comment to the post
+    post.comments.push(newComment);
+    await post.save();
+
+    // Populate user details for frontend (optional)
+    await post.populate({
+      path: "comments.user",
+      select: "userName profileImage",
+    });
+
+    return res.status(201).json({
+      message: "Comment added successfully",
+      comments: post.comments,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: `Cannot add comment: ${error}` });
+  }
 }
