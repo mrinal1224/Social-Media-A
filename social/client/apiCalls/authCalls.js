@@ -207,7 +207,36 @@ export const viewStory = async (storyId) => {
   }
 };
 
-// Delete the Story
+// Comments 
+// Get all comments for a post
+export const getComments = async (postId) => {
+  try {
+    const { data } = await api.get(/api/comments/${postId});
+    return data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to fetch comments";
+  }
+};
+
+// Add a new comment
+export const addComment = async (postId, content) => {
+  try {
+    const { data } = await api.post(/api/comments/${postId}, { content });
+    return data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to add comment";
+  }
+};
+
+// Delete a comment
+export const deleteComment = async (commentId) => {
+  try {
+    const { data } = await api.delete(/api/comments/${commentId});
+    return data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to delete comment";
+  }
+};
 
 
 
