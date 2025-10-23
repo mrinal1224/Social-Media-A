@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { BiComment } from "react-icons/bi";
 import { BsBookmark } from "react-icons/bs";
-import { likePost } from "../../apiCalls/authCalls";
+import { likePost, addComment, deleteComment } from "../../apiCalls/authCalls";
 import { updatePost } from "../redux/postSlice";
 
 
@@ -39,8 +39,43 @@ function Post({ post }) {
 
   // Handle Comment
   const handleComment = async (e) => {
-   // Finish this function
+    e.preventDefault();
+    if (!commentText.trim()) return;
+    setIsCommenting(true);
+    try {
+      const newComment = await addComment(post._id, commentText.trim());
+
+      // update post in redux by adding comment to post.comments
+      const updatedPost = { ...post };
+      // server returns populated comment with author
+      const formatted = {
+        author: newComment.author,
+        message: newComment.text || newComment.text,
+        createdAt: newComment.createdAt || newComment.createdAt,
+        _id: newComment._id,
+      };
+
+      updatedPost.comments = [formatted, ...(updatedPost.comments || [])];
+      dispatch(updatePost(updatedPost));
+      setCommentText("");
+      setShowComments(true);
+    } catch (error) {
+      console.error("Add comment error:", error);
+    } finally {
+      setIsCommenting(false);
+    }
   };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await deleteComment(commentId);
+      const updatedPost = { ...post };
+      updatedPost.comments = (updatedPost.comments || []).filter(c => c._id !== commentId);
+      dispatch(updatePost(updatedPost));
+    } catch (error) {
+      console.error("Delete comment error:", error);
+    }
+  }
 
   return (
     <div className="w-full bg-white border border-neutral-200 rounded-xl p-4 mb-6 shadow-sm">
@@ -130,14 +165,20 @@ function Post({ post }) {
       {showComments && commentsCount > 0 && (
         <div className="mt-3 max-h-[200px] overflow-y-auto border-t pt-3">
           {post.comments.map((comment, idx) => (
-            <div key={idx} className="mb-3">
-              <p className="text-sm">
-                <span className="font-semibold">{comment.author.userName}</span>{" "}
-                {comment.message}
-              </p>
-              <p className="text-xs text-neutral-400 mt-1">
-                {new Date(comment.createdAt).toLocaleDateString()}
-              </p>
+            <div key={comment._id || idx} className="mb-3 flex justify-between items-start">
+              <div>
+                <p className="text-sm">
+                  <span className="font-semibold">{comment.author.userName}</span>{" "}
+                  {comment.message || comment.text}
+                </p>
+                <p className="text-xs text-neutral-400 mt-1">
+                  {new Date(comment.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+              {/* delete button if current user is author */}
+              {userData && (comment.author._id === userData._id || post.author._id === userData._id) && (
+                <button onClick={() => handleDeleteComment(comment._id)} className="text-red-500 text-sm ml-4">Delete</button>
+              )}
             </div>
           ))}
         </div>
