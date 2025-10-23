@@ -107,6 +107,24 @@ export const likePost = async (postId) => {
   }
 }
 
+export const addComment = async (postId, text) => {
+  try {
+    const response = await api.post(`/api/comments/${postId}`, { text }, { withCredentials: true });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to add comment";
+  }
+}
+
+export const deleteComment = async (commentId) => {
+  try {
+    const response = await api.post(`/api/comments/delete/${commentId}`, {}, { withCredentials: true });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to delete comment";
+  }
+}
+
 // follow and unfollow calls
 
 export const followUser = async (userId) => {
