@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import React, { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
@@ -40,6 +41,23 @@ function Post({ post }) {
   // Handle Comment
   const handleComment = async (e) => {
    // Finish this function
+    e.preventDefault();
+    const text = commentText.trim();
+    if (!text || isCommenting) return;
+    setIsCommenting(true);
+    setCommentError("");
+    try {
+      const updatedPost = await commentOnPost(post._id, text);
+      dispatch(updatePost(updatedPost));
+      setCommentText("");
+      if (!showComments) setShowComments(true);
+    } catch (error) {
+      console.error("Comment error:", error);
+      const message = typeof error === "string" ? error : (error?.message || "Failed to comment on post");
+      setCommentError(message);
+    } finally {
+      setIsCommenting(false);
+    }   
   };
 
   return (
@@ -48,7 +66,7 @@ function Post({ post }) {
       <div className="flex items-center gap-3 mb-3">
         <div className="w-[40px] h-[40px] rounded-full bg-neutral-300 overflow-hidden">
           <img
-            src={post.author.profileImage}
+            src={post.author.profileImage || null}
             alt="profile"
             className="w-full h-full object-cover"
           />
@@ -65,7 +83,7 @@ function Post({ post }) {
       <div className="w-full h-[500px] bg-neutral-200 rounded-lg mb-3 overflow-hidden">
         {post.mediaType === "image" ? (
           <img
-            src={post.mediaUrl}
+            src={post.mediaUrl || null}
             alt="post"
             className="w-full h-full object-cover"
           />
@@ -130,10 +148,10 @@ function Post({ post }) {
       {showComments && commentsCount > 0 && (
         <div className="mt-3 max-h-[200px] overflow-y-auto border-t pt-3">
           {post.comments.map((comment, idx) => (
-            <div key={idx} className="mb-3">
+            <div key={comment._id || idx} className="mb-3">
               <p className="text-sm">
-                <span className="font-semibold">{comment.author.userName}</span>{" "}
-                {comment.message}
+                <span className="font-semibold">{comment.user?.userName}</span>{" "}
+                {comment.text}
               </p>
               <p className="text-xs text-neutral-400 mt-1">
                 {new Date(comment.createdAt).toLocaleDateString()}
@@ -149,7 +167,9 @@ function Post({ post }) {
           type="text"
           placeholder="Add a comment..."
           value={commentText}
-          onChange={(e) => setCommentText(e.target.value)}
+          onChange={(e) => {if (commentError) setCommentError("");
+            setCommentText(e.target.value);
+          }}
           className="flex-1 px-3 py-2 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-neutral-400"
         />
         <button
