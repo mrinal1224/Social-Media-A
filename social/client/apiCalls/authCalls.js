@@ -1,13 +1,10 @@
 import axios from "axios";
 import { API_BASE_URL } from "./config";
-
 const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
 });
-
 // route - /api/auth/signup
-
 export const signUpUser = async ({ name, userName, email, password }) => {
   console.log(name, userName, password, email);
   try {
@@ -17,7 +14,6 @@ export const signUpUser = async ({ name, userName, email, password }) => {
       email,
       password,
     });
-
     console.log(response);
     return response.data; // return just the data
   } catch (error) {
@@ -25,14 +21,12 @@ export const signUpUser = async ({ name, userName, email, password }) => {
     throw error.response?.data?.message || "Something went wrong";
   }
 };
-
 export const signInUser = async ({ userName, password }) => {
   try {
     const response = await api.post("/api/auth/signin", {
       userName,
       password,
     });
-
     console.log(response);
     return response.data; // return just the data
   } catch (error) {
@@ -40,7 +34,6 @@ export const signInUser = async ({ userName, password }) => {
     throw error.response?.data?.message || "Something went wrong";
   }
 };
-
 export const getCurrentUser = async () => {
   try {
     const response = await api.get("/api/user/current", {withCredentials:true});
@@ -50,8 +43,6 @@ export const getCurrentUser = async () => {
     throw error.response?.data?.message || "Something went wrong";
   }
 };
-
-
  // get User Profile Data
 export const getProfile= async (userName) => {
   try {
@@ -62,8 +53,6 @@ export const getProfile= async (userName) => {
     throw error.response?.data?.message || "Something went wrong";
   }
 };
-
-
 export const editProfile= async (formData) => {
   try {
     const response = await api.post(`/api/user/editprofile/`,formData,  {withCredentials:true});
@@ -73,8 +62,6 @@ export const editProfile= async (formData) => {
     throw error.response?.data?.message || "Something went wrong";
   }
 };
-
-
 export const createPost = async(formData)=>{
    try {
     const response = await api.post(`/api/post/uploadPost/`,formData,
@@ -85,8 +72,6 @@ export const createPost = async(formData)=>{
     throw error.response?.data?.message || "Something went wrong";
   }
 }
-
-
 export const getAllPosts = async ()=>{
     try {
     const response = await api.get(`/api/post/getAllPosts`,  {
@@ -95,9 +80,8 @@ export const getAllPosts = async ()=>{
     return response.data;
   } catch (error) {
     throw error.response?.data?.message || "Failed to fetch Posts";
-  } 
+  }
 }
-
 export const likePost = async (postId) => {
   try {
     const response = await api.post(`/api/post/like/${postId}`, {}, { withCredentials: true })
@@ -107,6 +91,23 @@ export const likePost = async (postId) => {
   }
 }
 
+export const addComment = async (postId, text) => {
+  try {
+    const response = await api.post(`/api/post/comment/${postId}`, { text }, { withCredentials: true })
+    return response.data
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to add comment";
+  }
+}
+
+export const deleteComment = async (postId, commentId) => {
+  try {
+    const response = await api.delete(`/api/post/comment/${postId}/${commentId}`, { withCredentials: true })
+    return response.data
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to delete comment";
+  }
+}
 // follow and unfollow calls
 
 export const followUser = async (userId) => {
@@ -117,7 +118,6 @@ export const followUser = async (userId) => {
     throw error.response?.data?.message || "Failed to follow user";
   }
 }
-
 export const unfollowUser = async (userId) => {
   try {
     const response = await api.post(`/api/follow/unfollow/${userId}`, {}, { withCredentials: true })
@@ -126,7 +126,6 @@ export const unfollowUser = async (userId) => {
     throw error.response?.data?.message || "Failed to unfollow user";
   }
 }
-
 export const getFollowStatus = async (userId) => {
   try {
     const response = await api.get(`/api/follow/status/${userId}`, { withCredentials: true })
@@ -135,8 +134,7 @@ export const getFollowStatus = async (userId) => {
     throw error.response?.data?.message || "Failed to get follow status";
   }
 }
-
-// 
+//
 export const getSuggestions = async () => {
   try {
     const response = await api.get(`/api/user/suggested`)
@@ -145,9 +143,7 @@ export const getSuggestions = async () => {
     throw error.response?.data?.message || "Failed to fetch user profile data";
   }
 }
-
 // Story Calls
-
 export const createStory = async (formData) => {
   try {
     const response = await api.post("/api/story/create", formData, {
@@ -158,7 +154,6 @@ export const createStory = async (formData) => {
     throw error.response?.data?.message || "Failed to create story";
   }
 };
-
 // Get all active stories
 export const getAllStories = async () => {
   try {
@@ -170,7 +165,6 @@ export const getAllStories = async () => {
     throw error.response?.data?.message || "Failed to fetch stories";
   }
 };
-
 // Get current user's stories
 export const getMyStories = async () => {
   try {
@@ -182,7 +176,6 @@ export const getMyStories = async () => {
     throw error.response?.data?.message || "Failed to fetch your stories";
   }
 };
-
 // Get stories by specific user
 export const getUserStories = async (userId) => {
   try {
@@ -194,7 +187,6 @@ export const getUserStories = async (userId) => {
     throw error.response?.data?.message || "Failed to fetch user stories";
   }
 };
-
 // View a story
 export const viewStory = async (storyId) => {
   try {
@@ -206,15 +198,4 @@ export const viewStory = async (storyId) => {
     throw error.response?.data?.message || "Failed to view story";
   }
 };
-
 // Delete the Story
-
-
-
-
-
-
-
-
-
-

@@ -1,165 +1,161 @@
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { BiComment } from "react-icons/bi";
 import { BsBookmark } from "react-icons/bs";
-import { likePost } from "../../apiCalls/authCalls";
+import { likePost, addComment } from "../../apiCalls/authCalls";
 import { updatePost } from "../redux/postSlice";
-
+import Comment from "./Comment";
 
 function Post({ post }) {
-  const { userData } = useSelector((state) => state.user);
   const dispatch = useDispatch();
-  
+  const { userData } = useSelector((state) => state.user);
+
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(post.likes?.length || 0);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
-  const [isLiking, setIsLiking] = useState(false);
   const [isCommenting, setIsCommenting] = useState(false);
 
-  // Check if current user liked this post
-  const isLiked = post.likes?.some(id => id === userData?._id);
-  const likesCount = post.likes?.length || 0;
-  const commentsCount = post.comments?.length || 0;
+  const commentsCount = post.comments ? post.comments.length : 0;
 
-  // Handle Like
+  useEffect(() => {
+    if (userData && post.likes) {
+      setIsLiked(post.likes.includes(userData._id));
+    } else {
+      setIsLiked(false);
+    }
+    setLikesCount(post.likes?.length || 0);
+  }, [post, userData]);
+
   const handleLike = async () => {
-    if (isLiking) return;
-    setIsLiking(true);
-    
     try {
       const updatedPost = await likePost(post._id);
-      console.log(updatedPost)
-      dispatch(updatePost(updatedPost));
+      if (updatedPost) {
+        dispatch(updatePost(updatedPost));
+        setLikesCount(updatedPost.likes?.length || 0);
+        if (userData) setIsLiked(updatedPost.likes?.includes(userData._id));
+      }
     } catch (error) {
       console.error("Like error:", error);
-    } finally {
-      setIsLiking(false);
     }
   };
 
   // Handle Comment
   const handleComment = async (e) => {
-   // Finish this function
+    e.preventDefault();
+    if (!commentText.trim() || isCommenting) return;
+
+    setIsCommenting(true);
+    try {
+      const updatedPost = await addComment(post._id, commentText);
+      if (updatedPost) {
+        dispatch(updatePost(updatedPost));
+      }
+      setCommentText("");
+    } catch (error) {
+      console.error("Comment error:", error);
+    } finally {
+      setIsCommenting(false);
+    }
   };
 
   return (
-    <div className="w-full bg-white border border-neutral-200 rounded-xl p-4 mb-6 shadow-sm">
-      {/* Post header */}
+    <div className="border rounded-md p-4 bg-white">
+      {/* Post Header */}
       <div className="flex items-center gap-3 mb-3">
-        <div className="w-[40px] h-[40px] rounded-full bg-neutral-300 overflow-hidden">
-          <img
-            src={post.author.profileImage}
-            alt="profile"
-            className="w-full h-full object-cover"
-          />
-        </div>
+        <img
+          src={post.author?.profilePic || "/default-avatar.png"}
+          alt={post.author?.userName || "user"}
+          className="w-10 h-10 rounded-full object-cover"
+        />
         <div>
-          <p className="font-semibold text-sm">{post.author.userName}</p>
-          <p className="text-xs text-neutral-500">
-            {new Date(post.createdAt).toLocaleDateString()}
+          <p className="font-semibold">{post.author?.userName || "Unknown"}</p>
+          <p className="text-xs text-neutral-400">
+            {new Date(post.createdAt).toLocaleString()}
           </p>
         </div>
       </div>
 
-      {/* Post image/video */}
-      <div className="w-full h-[500px] bg-neutral-200 rounded-lg mb-3 overflow-hidden">
-        {post.mediaType === "image" ? (
+      {/* Post Image */}
+      {post.image && (
+        <div className="mb-3">
           <img
-            src={post.mediaUrl}
+            src={post.image}
             alt="post"
-            className="w-full h-full object-cover"
+            className="w-full max-h-[400px] object-cover rounded"
           />
-        ) : (
-          <video
-            src={post.mediaUrl}
-            controls
-            className="w-full h-full object-cover"
-          />
-        )}
-      </div>
-
-      {/* Post actions */}
-      <div className="flex gap-4 mb-3 text-[22px] text-neutral-700">
-        <button
-          onClick={handleLike}
-          disabled={isLiking}
-          className="flex items-center gap-1 transition-all disabled:opacity-50"
-        >
-          {isLiked ? (
-            <AiFillHeart className="text-red-500" />
-          ) : (
-            <AiOutlineHeart className="hover:text-red-500" />
-          )}
-        </button>
-
-        <button
-          onClick={() => setShowComments(!showComments)}
-          className="flex items-center gap-1 transition-all"
-        >
-          <BiComment className="hover:text-blue-500" />
-        </button>
-
-        <BsBookmark className="cursor-pointer hover:text-green-500 transition ml-auto" />
-      </div>
-
-      {/* Likes count */}
-      {likesCount > 0 && (
-        <p className="text-sm font-semibold mb-2">
-          {likesCount} {likesCount === 1 ? 'like' : 'likes'}
-        </p>
-      )}
-
-      {/* Caption */}
-      {post.caption && (
-        <p className="text-sm text-neutral-700 mb-2">
-          <span className="font-semibold">{post.author.userName}</span> {post.caption}
-        </p>
-      )}
-
-      {/* View comments */}
-      {commentsCount > 0 && !showComments && (
-        <button
-          onClick={() => setShowComments(true)}
-          className="text-sm text-neutral-500 hover:text-neutral-700"
-        >
-          View all {commentsCount} comments
-        </button>
-      )}
-
-      {/* Comments section */}
-      {showComments && commentsCount > 0 && (
-        <div className="mt-3 max-h-[200px] overflow-y-auto border-t pt-3">
-          {post.comments.map((comment, idx) => (
-            <div key={idx} className="mb-3">
-              <p className="text-sm">
-                <span className="font-semibold">{comment.author.userName}</span>{" "}
-                {comment.message}
-              </p>
-              <p className="text-xs text-neutral-400 mt-1">
-                {new Date(comment.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-          ))}
         </div>
       )}
 
-      {/* Add comment */}
-      <form onSubmit={handleComment} className="flex gap-2 mt-3 border-t pt-3">
-        <input
-          type="text"
-          placeholder="Add a comment..."
-          value={commentText}
-          onChange={(e) => setCommentText(e.target.value)}
-          className="flex-1 px-3 py-2 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:border-neutral-400"
-        />
+      {/* Post Caption */}
+      {post.caption && <p className="mb-3">{post.caption}</p>}
+
+      {/* Post Actions */}
+      <div className="flex items-center gap-4">
         <button
-          type="submit"
-          disabled={!commentText.trim() || isCommenting}
-          className="px-4 py-2 bg-blue-500 text-white text-sm font-semibold rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          onClick={handleLike}
+          className="flex items-center gap-1 text-lg"
+          aria-label="like"
         >
-          {isCommenting ? "..." : "Post"}
+          {isLiked ? <AiFillHeart className="text-red-500" /> : <AiOutlineHeart />}
         </button>
-      </form>
+
+        <button
+          onClick={() => setShowComments((s) => !s)}
+          className="flex items-center gap-1 text-lg"
+          aria-label="comments"
+        >
+          <BiComment />
+          <span className="text-sm">{commentsCount}</span>
+        </button>
+
+        <button className="ml-auto text-lg" aria-label="bookmark">
+          <BsBookmark />
+        </button>
+      </div>
+
+      {/* Likes Count */}
+      <div className="mt-2 text-sm">
+        <span className="font-semibold">{likesCount} likes</span>
+      </div>
+
+      {/* Comments Section */}
+      {showComments && (
+        <div className="mt-3">
+          {/* Add Comment */}
+          <form onSubmit={handleComment} className="flex gap-2 items-center mb-3">
+            <input
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              placeholder="Write a comment..."
+              className="flex-1 border rounded px-3 py-2 text-sm"
+              disabled={isCommenting}
+            />
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-3 py-1 rounded disabled:opacity-50"
+              disabled={isCommenting || !commentText.trim()}
+            >
+              {isCommenting ? "Posting..." : "Post"}
+            </button>
+          </form>
+
+          {/* Display Comments */}
+          {commentsCount > 0 && (
+            <div className="mt-3 max-h-[200px] overflow-y-auto border-t pt-3">
+              {post.comments.map((comment, idx) => (
+                <Comment
+                  key={comment._id || idx}
+                  comment={comment}
+                  postId={post._id}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
