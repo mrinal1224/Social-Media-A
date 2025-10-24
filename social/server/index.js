@@ -36,6 +36,13 @@ app.get("/", (req, res) => {
   res.send("Hello from the social server!");
 });
 
+// Health endpoint - reports server and DB status
+app.get("/health", async (req, res) => {
+  const mongoose = await import("mongoose");
+  const readyState = mongoose.connection.readyState; // 0 = disconnected, 1 = connected
+  res.json({ server: "ok", dbConnected: readyState === 1, dbState: readyState });
+});
+
 app.listen(PORT, () => {
   console.log(`Social server is running on http://localhost:${PORT}`);
 });

@@ -107,6 +107,24 @@ export const likePost = async (postId) => {
   }
 }
 
+export const createComment = async (postId, text) => {
+  try {
+    const response = await api.post(`/api/post/comment/${postId}`, { text }, { withCredentials: true })
+    return response.data
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to create comment";
+  }
+}
+
+export const createReply = async (postId, commentId, text) => {
+  try {
+    const response = await api.post(`/api/post/comment/${postId}/reply/${commentId}`, { text }, { withCredentials: true })
+    return response.data
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to create reply";
+  }
+}
+
 // follow and unfollow calls
 
 export const followUser = async (userId) => {

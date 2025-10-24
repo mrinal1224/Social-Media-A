@@ -1,61 +1,72 @@
 import mongoose from "mongoose";
 
-const postSchema = new mongoose.Schema({
-  // author
-  // caption
-  // content - image , video
-  // Date and time
-  // Likes
-  // Comments
-
-  author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "user",
-    required: true,
-  },
-
-  caption: {
-    type: String,
-    default: "",
-  },
-
-  mediaType: {
-    type: String,
-    enum: ["image", "video"],
-    required: true,
-  },
-
-  mediaUrl: {
-    type: String,
-    required:true
-  },
-
-  likes: [
-    {
+const replySchema = new mongoose.Schema(
+  {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "user",
     },
-  ],
+    text: {
+      type: String,
+      required: true,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: true }
+);
 
-  comments: [
-    {
-      user: {
+const commentSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+    },
+    text: {
+      type: String,
+      required: true,
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    replies: [replySchema],
+  },
+  { _id: true }
+);
+
+const postSchema = new mongoose.Schema(
+  {
+    author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "user",
+      required: true,
+    },
+    caption: {
+      type: String,
+      default: "",
+    },
+    mediaType: {
+      type: String,
+      enum: ["image", "video"],
+      required: true,
+    },
+    mediaUrl: {
+      type: String,
+      required: true,
+    },
+    likes: [
+      {
         type: mongoose.Schema.Types.ObjectId,
         ref: "user",
       },
-
-      text:{
-        type:String,
-        required:true
-      },
-
-      createdAt:{
-        type:Date,
-        default:Date.now()
-      }
-    },
-  ],
-} , {timestamps:true});
+    ],
+    comments: [commentSchema],
+  },
+  { timestamps: true }
+);
 
 const Post = mongoose.model("post", postSchema);
 
