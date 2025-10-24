@@ -122,10 +122,36 @@ export const like = async (req, res) => {
 };
 
 
-export const comment  = async(req , res)=>{
-   // postid
-   // userid
-   // userName
-   // text
-   // createdAt
-}
+export const comment = async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { text } = req.body;
+    const userId = req.userId;
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: "Comment text is required" });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // Add comment to post
+    const comment = {
+      user: userId,
+      text,
+      createdAt: new Date(),
+    };
+    post.comments.push(comment);
+    await post.save();
+    await post.populate([
+      { path: "author", select: "userName profileImage" },
+      { path: "comments.user", select: "userName profileImage" },
+    ]);
+
+    return res.status(201).json(post);
+  } catch (error) {
+    return res.status(500).json({ message: `Failed to add comment: ${error}` });
+  }
+};

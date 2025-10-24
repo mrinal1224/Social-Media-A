@@ -3,9 +3,8 @@ import { useSelector, useDispatch } from "react-redux";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { BiComment } from "react-icons/bi";
 import { BsBookmark } from "react-icons/bs";
-import { likePost } from "../../apiCalls/authCalls";
+import { likePost, commentOnPost } from "../../apiCalls/authCalls";
 import { updatePost } from "../redux/postSlice";
-
 
 function Post({ post }) {
   const { userData } = useSelector((state) => state.user);
@@ -39,7 +38,19 @@ function Post({ post }) {
 
   // Handle Comment
   const handleComment = async (e) => {
-   // Finish this function
+    e.preventDefault();
+    if (!commentText.trim() || isCommenting) return;
+    setIsCommenting(true);
+    try {
+      const updatedPost = await commentOnPost(post._id, commentText);
+      dispatch(updatePost(updatedPost));
+      setCommentText("");
+      if (!showComments) setShowComments(true);
+    } catch (error) {
+      console.error("Comment error:", error);
+    } finally {
+      setIsCommenting(false);
+    }
   };
 
   return (
