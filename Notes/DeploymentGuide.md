@@ -10,7 +10,7 @@ This guide walks you through deploying your **full-stack social media applicatio
 * **Frontend:** React + Vite (Deploy on [Vercel](https://vercel.com))
 * **Backend:** Node.js + Express (Deploy on [Render](https://render.com))
 * **Database:** MongoDB Atlas (Cloud Database)
-* **Media Storage:** Cloudinary (Already configured)
+* **Media Storage:** Cloudinary (Already configured) change
 
 ---
 
