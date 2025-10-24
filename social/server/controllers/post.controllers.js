@@ -63,6 +63,9 @@ export const uploadPost = async (req, res) => {
     res.status(500).json({ message: `Cannot Upload$ ${error}` });
   }
 };
+
+
+
 export const getAllPosts = async (req, res) => {
   try {
     // Get current user with following list
@@ -76,6 +79,7 @@ export const getAllPosts = async (req, res) => {
       author: { $in: userIds }
     })
       .populate("author", "name userName profileImage")
+      .populate("comments.author", "name userName profileImage")
       .sort({ createdAt: -1 }); // Latest posts first
     
     return res.status(200).json(posts);
@@ -121,11 +125,112 @@ export const like = async (req, res) => {
   return res.status(200).json(post);
 };
 
+// homework
+// Example: postController.js
 
-export const comment  = async(req , res)=>{
-   // postid
-   // userid
-   // userName
-   // text
-   // createdAt
-}
+export const comment = async (req, res) => {
+  try {
+    const { text } = req.body;
+    const { postId } = req.params;
+    const userId = req.userId;
+
+    // ✅ Step 1: Validate comment text
+    if (!text || text.trim() === "") {
+      return res.status(400).json({ message: "Comment text cannot be empty" });
+    }
+
+    // ✅ Step 2: Find post
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    // ✅ Step 3: Add comment
+    const newComment = {
+      user: userId,
+      text,
+      createdAt: new Date(),
+    };
+
+    post.comments.push(newComment);
+    await post.save();
+
+    await post.populate("comments.user", "userName profileImage");
+
+    res.status(201).json({ message: "Comment added successfully", post });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error while adding comment" });
+  }
+};
+
+
+
+export const editComment = async (req, res) => {
+  try {
+    const { postId, commentId } = req.params;
+    const { text } = req.body;
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    // Find comment inside post
+    const comment = post.comments.id(commentId);
+    if (!comment) return res.status(404).json({ message: "Comment not found" });
+
+    // Check if the logged-in user is the one who made the comment
+    if (comment.user.toString() !== req.userId.toString()) {
+      return res.status(403).json({ message: "You can only edit your own comments" });
+    }
+
+    // Update text
+    comment.text = text;
+    await post.save();
+
+    await post.populate("comments.user", "userName profileImage");
+
+    return res.status(200).json({
+      success: true,
+      message: "Comment updated successfully",
+      post,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: `Cannot edit comment: ${error}` });
+  }
+};
+
+
+
+export const deleteComment = async (req, res) => {
+  try {
+    const { postId, commentId } = req.params;
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const comment = post.comments.id(commentId);
+    if (!comment) return res.status(404).json({ message: "Comment not found" });
+
+    // Check if user owns the comment or is the author of the post
+    if (
+      comment.user.toString() !== req.userId.toString() &&
+      post.author.toString() !== req.userId.toString()
+    ) {
+      return res.status(403).json({ message: "You are not authorized to delete this comment" });
+    }
+
+    // Remove comment
+    post.comments = post.comments.filter(
+      (c) => c._id.toString() !== commentId
+    );
+    await post.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Comment deleted successfully",
+      post,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: `Cannot delete comment: ${error}` });
+  }
+};

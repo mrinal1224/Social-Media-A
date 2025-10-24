@@ -210,7 +210,19 @@ export const viewStory = async (storyId) => {
 // Delete the Story
 
 
-
+// Comment on a post
+export const commentPost = async (postId, text) => {
+  try {
+    const response = await api.post(
+      `/api/post/comment/${postId}`,
+      { text },
+      { withCredentials: true }  
+    );
+    return response.data.post; 
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to add comment on post";
+  }
+};
 
 
 

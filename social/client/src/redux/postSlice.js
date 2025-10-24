@@ -18,7 +18,24 @@ const postSlice = createSlice({
       if (index !== -1) {
         state.postData[index] = updatedPost
       }
-    }
+    },
+
+    editComment: (state, action) => {
+      const { postId, commentId, newText } = action.payload
+      const post = state.postData.find(post => post._id === postId)
+      if(post) {
+        const comment = post.comments.find(c => c._id === commentId)
+        if(comment) comment.text = newText
+      }
+    },
+
+    deleteComment: (state, action) => {
+      const { postId, commentId } = action.payload
+      const post = state.postData.find(post => post._id === postId)
+      if(post) {
+        post.comments = post.comments.filter(c => c._id !== commentId)
+      }
+    },
 
     // clearUserData : (state , action)=>{
     //     state.userData = null
@@ -26,5 +43,5 @@ const postSlice = createSlice({
   },
 });
 
-export const { setPostData , updatePost} = postSlice.actions;
+export const { setPostData , updatePost, editComment, deleteComment} = postSlice.actions;
 export default postSlice.reducer;
