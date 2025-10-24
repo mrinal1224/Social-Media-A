@@ -1,62 +1,46 @@
-import mongoose from "mongoose";
+// social/server/models/post.model.js
+const mongoose = require('mongoose');
 
-const postSchema = new mongoose.Schema({
-  // author
-  // caption
-  // content - image , video
-  // Date and time
-  // Likes
-  // Comments
-
-  author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "user",
+// Define the schema for comments first
+const commentSchema = new mongoose.Schema({
+  text: {
+    type: String,
     required: true,
+    trim: true // Added trim for cleaner data
   },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // Ensure 'User' matches your user model name
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
 
+// Update the postSchema to include the comments array
+const postSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  img: {
+    type: String,
+    required: true
+  },
   caption: {
     type: String,
     default: "",
+    trim: true // Added trim
   },
+  likes: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }],
+  comments: [commentSchema] // <-- Add the comments array using the commentSchema
+}, { timestamps: true });
 
-  mediaType: {
-    type: String,
-    enum: ["image", "video"],
-    required: true,
-  },
-
-  mediaUrl: {
-    type: String,
-    required:true
-  },
-
-  likes: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "user",
-    },
-  ],
-
-  comments: [
-    {
-      user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "user",
-      },
-
-      text:{
-        type:String,
-        required:true
-      },
-
-      createdAt:{
-        type:Date,
-        default:Date.now()
-      }
-    },
-  ],
-} , {timestamps:true});
-
-const Post = mongoose.model("post", postSchema);
-
-export default Post;
+const Post = mongoose.model('Post', postSchema);
+module.exports = Post;
