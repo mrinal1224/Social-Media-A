@@ -76,6 +76,7 @@ export const getAllPosts = async (req, res) => {
       author: { $in: userIds }
     })
       .populate("author", "name userName profileImage")
+    .populate("comments.user", "userName profileImage")
       .sort({ createdAt: -1 }); // Latest posts first
     
     return res.status(200).json(posts);
@@ -123,9 +124,63 @@ export const like = async (req, res) => {
 
 
 export const comment  = async(req , res)=>{
-   // postid
-   // userid
-   // userName
-   // text
-   // createdAt
+   try {
+     const postId = req.params.postId;
+     const { text } = req.body;
+
+     if (!text || !text.trim()) {
+       return res.status(400).json({ message: "Comment text is required" });
+     }
+
+     const post = await Post.findById(postId);
+     if (!post) return res.status(404).json({ message: "Post not found" });
+
+     // push comment
+     post.comments.push({ user: req.userId, text });
+     await post.save();
+
+    // populate author and comments' users for frontend
+    await post.populate("author", "userName profileImage");
+    await post.populate("comments.user", "userName profileImage");
+    await post.populate("comments.replies.user", "userName profileImage");
+
+    return res.status(200).json(post);
+   } catch (error) {
+     console.error("Comment error:", error);
+     return res.status(500).json({ message: `Cannot add comment ${error}` });
+   }
 }
+
+export const reply = async (req, res) => {
+  try {
+    const postId = req.params.postId;
+    const commentId = req.params.commentId;
+    const { text } = req.body;
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: "Reply text is required" });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) return res.status(404).json({ message: "Post not found" });
+
+    const comment = post.comments.id(commentId);
+    if (!comment) return res.status(404).json({ message: "Comment not found" });
+
+    comment.replies.push({ user: req.userId, text });
+
+    await post.save();
+
+    // populate author and nested users
+    await post.populate("author", "userName profileImage");
+    await post.populate("comments.user", "userName profileImage");
+    await post.populate("comments.replies.user", "userName profileImage");
+
+    return res.status(200).json(post);
+  } catch (error) {
+    console.error("Reply error:", error);
+    return res.status(500).json({ message: `Cannot add reply ${error}` });
+  }
+};
+
+
