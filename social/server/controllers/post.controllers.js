@@ -1,131 +1,110 @@
-import uploadFile from "../config/cloudinary.js";
-import Post from "../models/post.model.js";
-import User from "../models/user.model.js";
+// social/server/controllers/post.controllers.js
+const Post = require('../models/post.model');
+const User = require('../models/user.model'); // <-- Make sure this line is present
+const mongoose = require('mongoose'); // Import mongoose if needed for ObjectId validation etc.
 
-export const uploadPost = async (req, res) => {
+// ... keep existing functions (createPost, getPosts, getUserPosts, likeUnlikePost, deletePost) ...
+
+// ** START: Add these new functions **
+
+// Controller to add a comment
+exports.addComment = async (req, res) => {
   try {
-    // caption
-    //mediaType
-    // mediaUrl
-    const { mediaType, caption } = req.body;
+    const { postId } = req.params;
+    const { text } = req.body;
+    const userId = req.user._id; // User ID comes from the 'isAuth' middleware
 
-    console.log("Request body:", req.body);
-    console.log("Request file:", req.file);
-
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded" });
+    // Basic validation
+    if (!text || text.trim().length === 0) {
+      return res.status(400).json({ message: 'Comment text cannot be empty' });
+    }
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+       return res.status(400).json({ message: 'Invalid Post ID' });
     }
 
-    console.log("File path:", req.file.path); // Check if path exists
-
-    let mediaUrl = "";
-    try {
-      mediaUrl = await uploadFile(req.file.path);
-      console.log("Cloudinary URL:", mediaUrl);
-    } catch (uploadError) {
-      console.error("Cloudinary upload error:", uploadError);
-      return res
-        .status(500)
-        .json({ message: `Cloudinary upload failed: ${uploadError.message}` });
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
     }
 
-    if (!mediaUrl) {
-      return res
-        .status(500)
-        .json({ message: "Failed to get media URL from Cloudinary" });
-    }
+    // Create the new comment object
+    const comment = {
+      text: text.trim(),
+      user: userId,
+      createdAt: new Date() // Explicitly set creation time
+    };
 
-    // create the post
+    // Add comment to the post's comments array
+    post.comments.push(comment);
+    await post.save();
 
-    const post = await Post.create({
-      mediaType,
-      caption,
-      mediaUrl,
-      author: req.userId,
-    });
-    // we need to show posts for a individual user
-    const user = await User.findById(req.userId).populate("posts");
-    user.posts.push(post._id);
-    await user.save();
+    // Get the newly added comment (it's the last one in the array)
+    const newComment = post.comments[post.comments.length - 1];
 
-    // we need to show posts on the feed
+    // Populate the user details for the response
+    // Ensure your User model includes 'username' and 'profilePic'
+    await User.populate(newComment, { path: 'user', select: 'username profilePic' });
 
-    const populatedPost = await Post.findById(post._id).populate(
-      "author",
-      "userName profileImage"
-    );
+    // Send the populated comment back to the client
+    res.status(201).json(newComment);
 
-    return res.status(201).json(populatedPost);
-
-    // userName
-    // profileImage
   } catch (error) {
-    res.status(500).json({ message: `Cannot Upload$ ${error}` });
+    console.error("Error adding comment:", error);
+    res.status(500).json({ message: 'Internal Server Error', error: error.message });
   }
 };
-export const getAllPosts = async (req, res) => {
+
+// Controller to delete a comment
+exports.deleteComment = async (req, res) => {
   try {
-    // Get current user with following list
-    const currentUser = await User.findById(req.userId);
-    
-    // Create array of user IDs to fetch posts from (followed users + self)
-    const userIds = [req.userId, ...currentUser.following];
-    
-    // Get posts only from these users
-    const posts = await Post.find({
-      author: { $in: userIds }
-    })
-      .populate("author", "name userName profileImage")
-      .sort({ createdAt: -1 }); // Latest posts first
-    
-    return res.status(200).json(posts);
+    const { postId, commentId } = req.params;
+    const userId = req.user._id; // User ID from 'isAuth' middleware
+
+    if (!mongoose.Types.ObjectId.isValid(postId) || !mongoose.Types.ObjectId.isValid(commentId)) {
+       return res.status(400).json({ message: 'Invalid Post or Comment ID' });
+    }
+
+    const post = await Post.findById(postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Find the index of the comment to delete
+    const commentIndex = post.comments.findIndex(comment => comment._id.toString() === commentId);
+
+    if (commentIndex === -1) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    const comment = post.comments[commentIndex];
+
+    // Authorization check: Only the comment owner can delete it
+    if (comment.user.toString() !== userId.toString()) {
+      return res.status(403).json({ message: 'Unauthorized: You can only delete your own comments' });
+    }
+
+    // Remove the comment using splice
+    post.comments.splice(commentIndex, 1);
+    await post.save();
+
+    // Send success response
+    res.status(200).json({ message: 'Comment deleted successfully', commentId: commentId });
+
   } catch (error) {
-    return res.status(500).json({ message: `Cannot get posts error ${error}` });
+    console.error("Error deleting comment:", error);
+    res.status(500).json({ message: 'Internal Server Error', error: error.message });
   }
 };
 
+// ** END: Add new functions **
 
-export const like = async (req, res) => {
-  // post id
-  // userId
-  // already liked the post - dislike
-  // if not - like
-  // userName
-  const postId = req.params.postId;
-
-  const post = await Post.findById(postId);
-
-  if (!post) {
-    return res.status(404).json({ message: "No post Found" });
-  }
-
-  // if this is already liked?
-  // userId -> likes[] - all user Ids
-
-  const alreadyLiked = post.likes.some(
-    (id) => id.toString() === req.userId.toString()
-  );
-
-  if (alreadyLiked) {
-    // post is already liked
-    post.likes = post.likes.filter(
-      (id) => id.toString() !== req.userId.toString()
-    );
-  } else {
-    post.likes.push(req.userId);
-  }
-
-  await post.save();
-  await post.populate("author", "userName");
-
-  return res.status(200).json(post);
+// Make sure exports includes the new functions if you defined them elsewhere
+module.exports = {
+  createPost: exports.createPost, // Assuming these were already defined and exported
+  getPosts: exports.getPosts,
+  getUserPosts: exports.getUserPosts,
+  likeUnlikePost: exports.likeUnlikePost,
+  deletePost: exports.deletePost,
+  addComment: exports.addComment, // Add this
+  deleteComment: exports.deleteComment // Add this
 };
-
-
-export const comment  = async(req , res)=>{
-   // postid
-   // userid
-   // userName
-   // text
-   // createdAt
-}
