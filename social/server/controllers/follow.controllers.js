@@ -111,4 +111,3 @@ export const getFollowStatus = async (req, res) => {
   }
 };
 
-

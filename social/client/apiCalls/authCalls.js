@@ -107,6 +107,18 @@ export const likePost = async (postId) => {
   }
 }
 
+export const commentPost = async (postId, text) => {
+  try {
+    const response = await api.post(`/api/post/comment/${postId}`, { text }, { withCredentials: true })
+    return response.data
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to add comment";
+  }
+}
+
+// Alias for commentPost to match import in Post.jsx
+export const addCommentAPI = commentPost;
+
 // follow and unfollow calls
 
 export const followUser = async (userId) => {
@@ -207,8 +219,69 @@ export const viewStory = async (storyId) => {
   }
 };
 
-// Delete the Story
+// Message Calls
 
+// Send a message
+export const sendMessage = async (receiverId, text) => {
+  try {
+    const response = await api.post("/api/message/send", { receiverId, text }, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to send message";
+  }
+};
+
+// Get all conversations
+export const getConversations = async () => {
+  try {
+    const response = await api.get("/api/message/conversations", {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to fetch conversations";
+  }
+};
+
+// Get messages with a specific user
+export const getMessages = async (userId) => {
+  try {
+    const response = await api.get(`/api/message/${userId}`, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to fetch messages";
+  }
+};
+
+// Get users to chat with
+export const getChatUsers = async () => {
+  try {
+    const response = await api.get("/api/message/users/chat", {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to fetch chat users";
+  }
+};
+
+// Delete conversation
+export const deleteConversation = async (conversationId) => {
+  try {
+    const response = await api.delete(`/api/message/conversation/${conversationId}`, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to delete conversation";
+  }
+};
+
+// Delete the Story
 
 
 
