@@ -4,6 +4,8 @@ dotenv.config()
 import connectDB from './config/db.js'
 import authRouter from './routes/auth.routes.js'
 import userRouter from './routes/user.routes.js'
+import commentRouter from './routes/comment.routes.js'
+import postRouter from './routes/post.routes.js'
 import cookieParser from 'cookie-parser'
 
 
@@ -20,6 +22,8 @@ app.use(express.json())
 // Authentication routes
 app.use('/api/auth', authRouter)
 app.use('/api/user', userRouter)
+app.use('/api/comments', commentRouter)
+app.use('/api/posts', postRouter)
 
 
 connectDB()
