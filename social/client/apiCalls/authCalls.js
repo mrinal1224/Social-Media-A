@@ -107,6 +107,30 @@ export const likePost = async (postId) => {
   }
 }
 
+
+// Reels API: create a reel and fetch reels visible to the logged-in user.
+export const createReel = async (formData) => {
+  try {
+    const response = await api.post("/api/reel/uploadReel", formData, {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to create reel";
+  }
+};
+
+export const getAllReels = async () => {
+  try {
+    const response = await api.get("/api/reel/getAllReels", {
+      withCredentials: true,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.message || "Failed to fetch Reels";
+  }
+};
+
 // follow and unfollow calls
 
 export const followUser = async (userId) => {
