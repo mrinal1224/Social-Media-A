@@ -3,11 +3,19 @@ import React from "react";
 import logo from "../assets/socialLogo.png";
 import Nav from './Nav'
 import { useSelector } from "react-redux";
-import Post from "./Post";\nimport Reel from "./Reel";
+import Post from "./Post";
+import Reel from "./Reel";
 import StoriesBar from "./StoriesBar";
 
 function FeedDesign() {
-  const {postData} = useSelector(state=>state.post)\n  const {reelData} = useSelector(state=>state.reel)\n\n  // Merge posts and reels into one chronological Home feed.\n  const feedItems = [\n    ...(postData || []).map(item => ({...item, feedType: "post"})),\n    ...(reelData || []).map(item => ({...item, feedType: "reel"})),\n  ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+  const {postData} = useSelector(state=>state.post)
+  const {reelData} = useSelector(state=>state.reel)
+
+  // Merge posts and reels into one chronological Home feed.
+  const feedItems = [
+    ...(postData || []).map(item => ({...item, feedType: "post"})),
+    ...(reelData || []).map(item => ({...item, feedType: "reel"})),
+  ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   return (
     <div
       className="
