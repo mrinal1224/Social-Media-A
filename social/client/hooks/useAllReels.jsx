@@ -8,8 +8,9 @@ function useAllReels() {
   const { userData } = useSelector((state) => state.user);
 
   useEffect(() => {
-    // Fetch reels only when we have an authenticated user.
-    // The dependency also refetches when the active user changes.
+    // Fetch reels only after authentication is available.
+    // Re-fetching when userData changes keeps the feed in sync with the
+    // currently logged-in user's following list.
     const fetchReels = async () => {
       try {
         const result = await getAllReels();
