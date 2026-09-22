@@ -34,7 +34,7 @@ export const uploadReel = async (req, res) => {
     return res.status(201).json(populatedReel);
   } catch (error) {
     return res.status(500).json({
-      message: \`Cannot upload reel: \${error.message}\`,
+      message: `Cannot upload reel: ${error.message}`,
     });
   }
 };
@@ -60,7 +60,7 @@ export const getAllReels = async (req, res) => {
     return res.status(200).json(reels);
   } catch (error) {
     return res.status(500).json({
-      message: \`Cannot get reels: \${error.message}\`,
+      message: `Cannot get reels: ${error.message}`,
     });
   }
 };
